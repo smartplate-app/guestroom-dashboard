@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guest Room — MTD מאי 2026</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; direction:rtl; min-height:100vh; }
+
+.header {
+  background: linear-gradient(135deg, #1a0a42 0%, #3d1a7a 100%);
+  color: white; padding: 16px 22px;
+  display: flex; align-items: center; justify-content: space-between;
+  box-shadow: 0 3px 14px rgba(0,0,0,0.3);
+}
+.h-title { font-size:20px; font-weight:800; }
+.h-sub { font-size:10px; opacity:0.45; margin-top:2px; }
+.h-badge { background:rgba(255,255,255,0.13); border:1px solid rgba(255,255,255,0.22); border-radius:18px; padding:5px 14px; font-size:12px; font-weight:700; text-align:center; }
+.h-date { font-size:10px; opacity:0.45; margin-top:4px; text-align:center; }
+
+.container { max-width:960px; margin:0 auto; padding:18px 14px; }
+
+.kpi-row { display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+.kpi { background:white; border-radius:12px; padding:14px 16px; flex:1; min-width:135px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.07); border-top:4px solid #ddd; }
+.kpi.k-sales  { border-top-color:#3d1a7a; }
+.kpi.k-net    { border-top-color:#6d28d9; }
+.kpi.k-labor  { border-top-color:#ec4899; }
+.kpi.k-food   { border-top-color:#f59e0b; }
+.kpi.k-fore   { border-top-color:#0891b2; }
+.kpi-lbl { font-size:9px; color:#aaa; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:5px; }
+.kpi-val { font-size:24px; font-weight:800; color:#0a0a2e; line-height:1.1; }
+.kpi-sub { font-size:10px; color:#bbb; margin-top:3px; }
+.kpi-pct { margin-top:5px; }
+.badge { display:inline-block; padding:2px 8px; border-radius:9px; font-size:10px; font-weight:700; }
+.bg { background:#e8f5e9; color:#2e7d32; }
+.br { background:#fce4ec; color:#c62828; }
+.by { background:#fff8e1; color:#e65100; }
+.bb { background:#e3f2fd; color:#1565c0; }
+.bp { background:#f3e8ff; color:#6d28d9; }
+.bar { background:#eee; border-radius:4px; height:6px; margin-top:7px; overflow:hidden; }
+.bf  { height:100%; border-radius:4px; }
+
+.section { background:white; border-radius:12px; padding:18px; box-shadow:0 2px 8px rgba(0,0,0,0.07); margin-bottom:14px; }
+.s-title { font-size:12px; font-weight:700; color:#444; margin-bottom:12px; padding-right:9px; border-right:3px solid #3d1a7a; }
+
+.two { display:flex; gap:12px; margin-bottom:14px; }
+.two > .section { flex:1; margin-bottom:0; }
+@media(max-width:600px){ .two{flex-direction:column} }
+
+.hero { background:linear-gradient(135deg,#166534,#16a34a); border-radius:9px; color:white; padding:13px; text-align:center; margin-bottom:11px; }
+.hero.warn { background:linear-gradient(135deg,#7f1d1d,#dc2626); }
+.hero .big { font-size:28px; font-weight:800; }
+.hero .sm  { font-size:10px; opacity:0.55; margin-top:2px; }
+.pill { display:inline-block; border-radius:16px; padding:3px 12px; font-size:12px; font-weight:700; margin-top:6px; }
+.pg { background:#34a853; color:white; }
+.pp { background:#7c3aed; color:white; }
+
+.sb { background:#f8f9fa; border-radius:7px; padding:10px; text-align:center; }
+.sb .v { font-size:17px; font-weight:800; color:#0a0a2e; }
+.sb .l { font-size:9px; color:#999; margin-bottom:3px; }
+.sb .s { font-size:10px; font-weight:600; margin-top:2px; }
+
+.cr { display:flex; justify-content:space-between; align-items:center; padding:9px 11px; border-radius:7px; margin-bottom:6px; }
+.cr.n { background:#f8f9fa; }
+.cr.p { background:#fdf4ff; }
+.cr.y { background:#fff8e1; }
+.cr.d { background:#1a0a42; }
+.cr .l { font-size:11px; color:#555; }
+.cr .src { font-size:9px; color:#bbb; margin-top:1px; }
+.cr.d .l { color:rgba(255,255,255,0.65); }
+.cr .v { font-size:12px; font-weight:800; color:#0a0a2e; }
+.cr.d .v { color:white; font-size:15px; }
+
+.day { display:flex; align-items:center; padding:5px 0; border-bottom:1px solid #f5f5f5; gap:7px; }
+.day:last-child { border-bottom:none; }
+.dl { font-size:10px; color:#999; width:52px; flex-shrink:0; text-align:center; line-height:1.4; }
+.dbg { background:#f0f0f0; border-radius:3px; height:19px; overflow:hidden; flex:1; }
+.dbf { height:100%; border-radius:3px; display:flex; align-items:center; padding:0 6px; font-size:9px; font-weight:700; color:white; }
+.dv { font-size:11px; font-weight:700; color:#0a0a2e; width:65px; text-align:left; flex-shrink:0; }
+.today .dl { color:#3d1a7a; font-weight:800; }
+.today .dv { color:#3d1a7a; font-weight:800; }
+
+.footer { text-align:center; font-size:10px; color:#ccc; padding:12px 0 6px; line-height:1.9; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="h-title">🏠 Guest Room</div>
+    <div class="h-sub">Shiftorganizer · Smart Basic 2 · Rosa</div>
+  </div>
+  <div>
+    <div class="h-badge">MTD מאי 2026 — 1 עד 19 במאי</div>
+    <div class="h-date">עודכן: 19.05.2026 · נתונים מאומתים מהמקור ✓</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi k-sales">
+      <div class="kpi-lbl">מכירות MTD כולל מע"מ</div>
+      <div class="kpi-val">₪69,969</div>
+      <div class="kpi-sub">19 ימים · 626 סועדים</div>
+      <div class="kpi-pct"><span class="badge bp">₪112 לסועד</span></div>
+    </div>
+    <div class="kpi k-net">
+      <div class="kpi-lbl">מכירות נטו (ללא מע"מ)</div>
+      <div class="kpi-val">₪59,296</div>
+      <div class="kpi-sub">בסיס לחישוב אחוזי עלות</div>
+      <div class="kpi-pct"><span class="badge bb">155 הזמנות</span></div>
+    </div>
+    <div class="kpi k-labor">
+      <div class="kpi-lbl">עלות עבודה MTD</div>
+      <div class="kpi-val">₪17,298</div>
+      <div class="kpi-sub">Shiftorganizer ✓</div>
+      <div class="kpi-pct"><span class="badge bg">29.2% ממכירות נטו</span></div>
+      <div class="bar"><div class="bf" style="width:58%;background:#ec4899"></div></div>
+    </div>
+    <div class="kpi k-food">
+      <div class="kpi-lbl">עלות מזון MTD</div>
+      <div class="kpi-val">₪7,567</div>
+      <div class="kpi-sub">Smart Basic 2 ✓</div>
+      <div class="kpi-pct"><span class="badge bg">12.8% ממכירות נטו</span></div>
+      <div class="bar"><div class="bf" style="width:26%;background:#f59e0b"></div></div>
+    </div>
+    <div class="kpi k-fore">
+      <div class="kpi-lbl">תחזית חודש מלא</div>
+      <div class="kpi-val">₪114,160</div>
+      <div class="kpi-sub">₪3,683 ממוצע יומי · 31 ימים</div>
+      <div class="kpi-pct"><span class="badge bg">vs אפריל ₪97,661</span></div>
+    </div>
+  </div>
+
+  <!-- Labor + Costs -->
+  <div class="two">
+
+    <div class="section">
+      <div class="s-title">עלות עבודה — Shiftorganizer ✓</div>
+      <div class="hero">
+        <div class="big">₪17,298</div>
+        <div class="sm">19 ימים · מקור: Shiftorganizer</div>
+        <div><span class="pill pg">29.2% ממכירות נטו</span></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <div class="sb" style="flex:1">
+          <div class="l">עלות עבודה + מזון</div>
+          <div class="v" style="color:#166534">41.9%</div>
+          <div class="s" style="color:#34a853">✅ מתחת ליעד 45%</div>
+        </div>
+        <div class="sb" style="flex:1">
+          <div class="l">טיפים MTD</div>
+          <div class="v" style="color:#6d28d9">₪10,766</div>
+          <div class="s" style="color:#6d28d9">15.4% ממכירות כולל מע"מ</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="s-title">סיכום עלויות MTD — מקורות מאומתים</div>
+      <div class="cr p">
+        <div><div class="l">עלות עבודה</div><div class="src">📊 Shiftorganizer</div></div>
+        <span class="v" style="color:#ec4899">₪17,298 &nbsp;<small style="color:#ec4899;font-weight:700">29.2%</small></span>
+      </div>
+      <div class="cr y">
+        <div><div class="l">עלות מזון (ללא מע"מ)</div><div class="src">🧾 Smart Basic 2</div></div>
+        <span class="v" style="color:#e65100">₪7,567 &nbsp;<small style="color:#e65100;font-weight:700">12.8%</small></span>
+      </div>
+      <div class="cr n">
+        <div><div class="l">טיפים</div><div class="src">💳 Shiftorganizer</div></div>
+        <span class="v">₪10,766 &nbsp;<small style="color:#6d28d9;font-weight:700">15.4% ממכירות כולל מע"מ</small></span>
+      </div>
+      <div class="cr n">
+        <div><div class="l">מכירות BeeComm POS</div><div class="src">📦 Rosa</div></div>
+        <span class="v">₪69,969</span>
+      </div>
+      <div class="cr d" style="margin-top:8px">
+        <span class="l" style="font-weight:700;font-size:12px">סה"כ עבודה + מזון</span>
+        <span class="v">41.9%</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Daily sales -->
+  <div class="section">
+    <div class="s-title">מכירות יומיות — מאי 2026 (כולל מע"מ) · Rosa / BeeComm POS ✓</div>
+
+    <div class="day today"><div class="dl">19/5<br>ג׳ היום</div><div class="dbg"><div class="dbf" style="width:66%;background:#3d1a7a">היום</div></div><div class="dv">₪3,683</div></div>
+    <div class="day"><div class="dl">18/5 ב׳</div><div class="dbg"><div class="dbf" style="width:70%;background:#34a853"></div></div><div class="dv">₪3,893</div></div>
+    <div class="day"><div class="dl">17/5 א׳</div><div class="dbg"><div class="dbf" style="width:55%;background:#f59e0b"></div></div><div class="dv">₪3,053</div></div>
+    <div class="day"><div class="dl">16/5 ש׳</div><div class="dbg"><div class="dbf" style="width:85%;background:#34a853"></div></div><div class="dv">₪4,730</div></div>
+    <div class="day"><div class="dl">15/5 ו׳</div><div class="dbg"><div class="dbf" style="width:88%;background:#34a853"></div></div><div class="dv">₪4,900</div></div>
+    <div class="day"><div class="dl">14/5 ה׳</div><div class="dbg"><div class="dbf" style="width:82%;background:#34a853"></div></div><div class="dv">₪4,560</div></div>
+    <div class="day"><div class="dl">13/5 ד׳</div><div class="dbg"><div class="dbf" style="width:58%;background:#f59e0b"></div></div><div class="dv">₪3,223</div></div>
+    <div class="day"><div class="dl">12/5 ג׳</div><div class="dbg"><div class="dbf" style="width:62%;background:#34a853"></div></div><div class="dv">₪3,445</div></div>
+    <div class="day"><div class="dl">11/5 ב׳</div><div class="dbg"><div class="dbf" style="width:64%;background:#34a853"></div></div><div class="dv">₪3,556</div></div>
+    <div class="day"><div class="dl">10/5 א׳</div><div class="dbg"><div class="dbf" style="width:60%;background:#34a853"></div></div><div class="dv">₪3,334</div></div>
+    <div class="day"><div class="dl">9/5 ש׳</div><div class="dbg"><div class="dbf" style="width:90%;background:#34a853"></div></div><div class="dv">₪5,010</div></div>
+    <div class="day"><div class="dl">8/5 ו׳</div><div class="dbg"><div class="dbf" style="width:95%;background:#34a853"></div></div><div class="dv">₪5,278</div></div>
+    <div class="day"><div class="dl">7/5 ה׳</div><div class="dbg"><div class="dbf" style="width:80%;background:#34a853"></div></div><div class="dv">₪4,445</div></div>
+    <div class="day"><div class="dl">6/5 ד׳</div><div class="dbg"><div class="dbf" style="width:56%;background:#f59e0b"></div></div><div class="dv">₪3,111</div></div>
+    <div class="day"><div class="dl">5/5 ג׳</div><div class="dbg"><div class="dbf" style="width:50%;background:#f59e0b"></div></div><div class="dv">₪2,778</div></div>
+    <div class="day"><div class="dl">4/5 ב׳</div><div class="dbg"><div class="dbf" style="width:61%;background:#34a853"></div></div><div class="dv">₪3,390</div></div>
+    <div class="day"><div class="dl">3/5 א׳</div><div class="dbg"><div class="dbf" style="width:48%;background:#f59e0b"></div></div><div class="dv">₪2,667</div></div>
+    <div class="day"><div class="dl">2/5 ש׳</div><div class="dbg"><div class="dbf" style="width:86%;background:#34a853"></div></div><div class="dv">₪4,778</div></div>
+    <div class="day"><div class="dl">1/5 ו׳</div><div class="dbg"><div class="dbf" style="width:100%;background:#34a853"></div></div><div class="dv">₪5,563</div></div>
+  </div>
+
+  <div class="footer">
+    מכירות: Rosa (BeeComm POS) &nbsp;·&nbsp; עלות עבודה + טיפים: Shiftorganizer &nbsp;·&nbsp; עלות מזון: Smart Basic 2<br>
+    הדאשבורד יתעדכן אוטומטית כל בוקר בשעה 08:00
+  </div>
+
+</div>
+</body>
+</html>
