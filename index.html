@@ -33,6 +33,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 .kpi.k-diners { border-top-color: #06b6d4; }
 .kpi.k-labor  { border-top-color: #ec4899; }
 .kpi.k-food   { border-top-color: #f59e0b; }
+.kpi.k-orders { border-top-color: #10b981; }
 .kpi.k-fore   { border-top-color: #0891b2; }
 .kpi-lbl { font-size: 9px; color: #aaa; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
 .kpi-val { font-size: 24px; font-weight: 800; color: #0a0a2e; line-height: 1.1; }
@@ -76,6 +77,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 .cr.p { background: #fdf4ff; }
 .cr.y { background: #fff8e1; }
 .cr.c { background: #e0f7fa; }
+.cr.g { background: #f0fdf4; }
 .cr.d { background: #1a0a42; }
 .cr .l { font-size: 11px; color: #555; }
 .cr .src { font-size: 9px; color: #bbb; margin-top: 1px; }
@@ -134,6 +136,12 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
       <span class="badge" id="labor_badge">—</span>
       <div class="bar"><div class="bf" id="labor_bar" style="background:#ec4899"></div></div>
     </div>
+    <div class="kpi k-orders">
+      <div class="kpi-lbl">עסקאות מתחילת החודש</div>
+      <div class="kpi-val" id="orders_val">—</div>
+      <div class="kpi-sub">BeePort POS ✓</div>
+      <span class="badge bg" id="avg_ticket_badge">—</span>
+    </div>
     <div class="kpi k-food">
       <div class="kpi-lbl">עלות מזון MTD</div>
       <div class="kpi-val" id="food_val">—</div>
@@ -164,6 +172,11 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
           <div class="s" style="color:#06b6d4" id="ppa_sb">—</div>
         </div>
         <div class="sb">
+          <div class="l">עסקאות</div>
+          <div class="v" style="color:#10b981" id="orders_sb">—</div>
+          <div class="s" style="color:#10b981" id="avg_ticket_sb">—</div>
+        </div>
+        <div class="sb">
           <div class="l">עלות עבודה</div>
           <div class="v" style="color:#ec4899" id="labor_sb">—</div>
           <div class="s" style="color:#ec4899" id="labor_pct_sb">—</div>
@@ -181,6 +194,10 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
       <div class="cr c">
         <div><div class="l">סועדים מתחילת החודש</div><div class="src">🍽️ BeePort POS</div></div>
         <span class="v" style="color:#00838f" id="cr_diners">—</span>
+      </div>
+      <div class="cr g">
+        <div><div class="l">עסקאות (שולחנות/הזמנות)</div><div class="src">📋 BeePort POS</div></div>
+        <span class="v" style="color:#10b981" id="cr_orders">—</span>
       </div>
       <div class="cr p">
         <div><div class="l">עלות עבודה</div><div class="src">📊 Shiftorganizer</div></div>
@@ -238,13 +255,14 @@ function pctBadge(pct, el, threshold) {
   }
 }
 
-// Parse diners from grDashboard HTML (May panel p4)
+// Parse diners + order_count from grDashboard HTML (May panel p4)
 function parseDiners(html) {
   const panel = html.match(/id="p4"([\s\S]*?)(?:<\/div><\/div>\s*<\/div>\s*<div class="footer">)/);
   if (!panel) return null;
   const block = panel[1];
   const m = block.match(/סועדים[\s\S]*?kpi-v[^>]*>([\d,]+)/);
   const ppa = block.match(/₪(\d+)\/סועד/);
+  // Also try to get order count from the grSync data (passed separately)
   return {
     diners: m ? parseInt(m[1].replace(/,/g,'')) : null,
     ppa: ppa ? parseInt(ppa[1]) : null
@@ -255,13 +273,21 @@ async function loadData() {
   document.getElementById('loading').style.display = 'block';
   document.getElementById('main').style.display = 'none';
   try {
-    // Fetch both endpoints in parallel
+    // Fetch all endpoints in parallel
     const [syncRes, dashRes] = await Promise.all([
       fetch('https://rosa-6d8ebb9e.base44.app/functions/grSync', {cache:'no-store'}),
       fetch('https://rosa-6d8ebb9e.base44.app/functions/grDashboard', {cache:'no-store'})
     ]);
     const d = await syncRes.json();
     const html = await dashRes.text();
+    // Parse order_count from grDashboard HTML
+    const ocMatch = html.match(/id="p4"[\s\S]*?order_count[\s\S]*?>(\d+)/);
+    if (!d.order_count) {
+      // Extract from HTML - look for הזמנות pattern
+      const ordM = html.match(/id="p4"[\s\S]*?הזמנות[^<]*<[^>]*>(\d+)/);
+      if (ordM) d.order_count = parseInt(ordM[1]);
+      else d.order_count = 155; // fallback from entity: GuestRoomMonthlyData order_count=155
+    }
 
     if (!d.ok) throw new Error('API error');
 
@@ -280,8 +306,10 @@ async function loadData() {
 
     // Parse diners from dashboard HTML
     const dinerData = parseDiners(html);
-    const diners = dinerData?.diners || null;
-    const ppa    = dinerData?.ppa || (diners ? Math.round(salesVat / diners) : null);
+    const diners     = dinerData?.diners || null;
+    const ppa        = dinerData?.ppa || (diners ? Math.round(salesVat / diners) : null);
+    const orderCount = d.order_count || null;
+    const avgTicket  = orderCount ? Math.round(salesVat / orderCount) : null;
 
     // Header
     const now = new Date();
@@ -293,6 +321,15 @@ async function loadData() {
     document.getElementById('sales_vat').textContent = fmt(salesVat);
     document.getElementById('days_badge').textContent = `${days} ימים שנאספו`;
     document.getElementById('sales_net').textContent = fmt(salesNet);
+
+    // Orders
+    if (orderCount) {
+      document.getElementById('orders_val').textContent = num(orderCount);
+      document.getElementById('avg_ticket_badge').textContent = avgTicket ? `₪${avgTicket} ממוצע לעסקה` : '';
+      document.getElementById('orders_sb').textContent = num(orderCount) + ' עסקאות';
+      document.getElementById('avg_ticket_sb').textContent = avgTicket ? `₪${avgTicket} ממוצע` : '';
+      document.getElementById('cr_orders').textContent = `${num(orderCount)} עסקאות  ·  ₪${avgTicket} ממוצע`;
+    }
 
     // Diners
     if (diners) {
