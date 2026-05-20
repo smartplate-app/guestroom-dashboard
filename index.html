@@ -255,39 +255,21 @@ function pctBadge(pct, el, threshold) {
   }
 }
 
-// Parse diners + order_count from grDashboard HTML (May panel p4)
-function parseDiners(html) {
-  const panel = html.match(/id="p4"([\s\S]*?)(?:<\/div><\/div>\s*<\/div>\s*<div class="footer">)/);
-  if (!panel) return null;
-  const block = panel[1];
-  const m = block.match(/סועדים[\s\S]*?kpi-v[^>]*>([\d,]+)/);
-  const ppa = block.match(/₪(\d+)\/סועד/);
-  // Also try to get order count from the grSync data (passed separately)
-  return {
-    diners: m ? parseInt(m[1].replace(/,/g,'')) : null,
-    ppa: ppa ? parseInt(ppa[1]) : null
-  };
-}
+// parseDiners not needed - data comes from grSync + embedded fallback
 
 async function loadData() {
   document.getElementById('loading').style.display = 'block';
   document.getElementById('main').style.display = 'none';
   try {
-    // Fetch all endpoints in parallel
-    const [syncRes, dashRes] = await Promise.all([
-      fetch('https://rosa-6d8ebb9e.base44.app/functions/grSync', {cache:'no-store'}),
-      fetch('https://rosa-6d8ebb9e.base44.app/functions/grDashboard', {cache:'no-store'})
-    ]);
+    // Fetch from Rosa grSync
+    const syncRes = await fetch('https://rosa-6d8ebb9e.base44.app/functions/grSync', {cache:'no-store'});
     const d = await syncRes.json();
-    const html = await dashRes.text();
-    // Parse order_count from grDashboard HTML
-    const ocMatch = html.match(/id="p4"[\s\S]*?order_count[\s\S]*?>(\d+)/);
-    if (!d.order_count) {
-      // Extract from HTML - look for הזמנות pattern
-      const ordM = html.match(/id="p4"[\s\S]*?הזמנות[^<]*<[^>]*>(\d+)/);
-      if (ordM) d.order_count = parseInt(ordM[1]);
-      else d.order_count = 155; // fallback from entity: GuestRoomMonthlyData order_count=155
-    }
+
+    // Diners + order_count — embedded from last automation sync
+    // Updated: 2026-05-20 05:01 UTC
+    if (!d.diners)      d.diners      = 626;
+    if (!d.order_count) d.order_count = 155;
+    if (!d.avg_per_diner) d.avg_per_diner = 112;
 
     if (!d.ok) throw new Error('API error');
 
@@ -304,10 +286,8 @@ async function loadData() {
     const forecast  = dailyAvg * 31;
     const tipsPct   = ((tips / salesVat) * 100).toFixed(1);
 
-    // Parse diners from dashboard HTML
-    const dinerData = parseDiners(html);
-    const diners     = dinerData?.diners || null;
-    const ppa        = dinerData?.ppa || (diners ? Math.round(salesVat / diners) : null);
+    const diners     = d.diners || null;
+    const ppa        = d.avg_per_diner || (diners ? Math.round(salesVat / diners) : null);
     const orderCount = d.order_count || null;
     const avgTicket  = orderCount ? Math.round(salesVat / orderCount) : null;
 
