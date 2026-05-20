@@ -113,11 +113,11 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
   </div>
 </div>
 
-<div class="loading" id="loading">
+<div class="loading" id="loading" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(240,242,245,0.9);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;">
   <div class="spin"></div><br>טוען נתונים חיים מ-Rosa...
 </div>
 
-<div class="container" id="main">
+<div class="container" id="main" style="display:block">
 
   <!-- Row 1 KPIs -->
   <div class="kpi-row">
@@ -353,9 +353,8 @@ function renderWorkers(salesVat) {
 }
 
 async function loadData() {
-  document.getElementById('loading').style.display = 'block';
-  document.getElementById('main').style.display = 'none';
-  renderWorkers(null); // render with placeholders
+  document.getElementById('loading').style.display = 'flex';
+  renderWorkers(null);
 
   try {
     const syncRes = await fetch('https://rosa-6d8ebb9e.base44.app/functions/grSync', {cache:'no-store'});
@@ -428,10 +427,10 @@ async function loadData() {
     document.getElementById('last_refresh').textContent = `עודכן לאחרונה: ${timeStr}`;
 
     document.getElementById('loading').style.display = 'none';
-    document.getElementById('main').style.display = 'block';
 
   } catch(e) {
-    document.getElementById('loading').innerHTML = `<div style="color:#dc2626;font-size:13px">❌ שגיאה<br><small>${e.message}</small></div>`;
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('last_refresh').textContent = '⚠️ שגיאת חיבור — נתונים סטטיים מוצגים';
   }
 }
 
