@@ -242,27 +242,13 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
     </div>
   </div>
 
-  <!-- Supplier breakdown -->
+  <!-- Supplier breakdown — dynamic -->
   <div class="section">
-    <div class="s-title">פירוט עלות מזון לפי ספק — Smart Basic 2 ✓ (סכומים כולל מע"מ)</div>
-    <div class="sup-grid">
-      <div class="sup-box"><div class="sl">טמפו שיווק משקאות</div><div class="sv">₪5,450</div><div class="ss">נטו: ₪4,619 · 3 חשבוניות</div></div>
-      <div class="sup-box"><div class="sl">הכרם משקאות חריפים</div><div class="sv">₪4,863</div><div class="ss">נטו: ₪4,121 · 3 חשבוניות</div></div>
-      <div class="sup-box"><div class="sl">עלה עלה</div><div class="sv">₪2,104</div><div class="ss">נטו: ₪2,104 · 9 חשבוניות</div></div>
-      <div class="sup-box"><div class="sl">עידן שלמה יח"צ</div><div class="sv">₪1,704</div><div class="ss">נטו: ₪1,444 · 2 חשבוניות</div></div>
-      <div class="sup-box"><div class="sl">אייס דרים תעשיות</div><div class="sv">₪1,272</div><div class="ss">נטו: ₪1,078 · 1 חשבוניות</div></div>
-      <div class="sup-box"><div class="sl">ר&ד אוליפנט</div><div class="sv">₪656</div><div class="ss">נטו: ₪556 · 1 חשבוניות</div></div>
-      <div class="sup-box"><div class="sl">אשראי</div><div class="sv">₪642</div><div class="ss">נטו: ₪544 · 3 חשבוניות</div></div>
-      <div class="sup-box"><div class="sl">ייקבי כרמל</div><div class="sv">₪549</div><div class="ss">נטו: ₪465 · 1 חשבוניות</div></div>
-      <div class="sup-box"><div class="sl">מרליז יבוא ושיווק</div><div class="sv">₪347</div><div class="ss">נטו: ₪294 · 1 חשבוניות</div></div>
-      <div class="sup-box"><div class="sl">פינת הגבינות והיין</div><div class="sv">₪215</div><div class="ss">נטו: ₪182 · 1 חשבוניות</div></div>
-      <div class="sup-box"><div class="sl">חבשוש אריה</div><div class="sv">₪154</div><div class="ss">נטו: ₪131 · 1 חשבוניות</div></div>
-      <div class="sup-box"><div class="sl">ברלין</div><div class="sv">₪53</div><div class="ss">נטו: ₪45 · 3 חשבוניות</div></div>
-      <div class="sup-box"><div class="sl">מאפיית המוציא לחם</div><div class="sv">₪45</div><div class="ss">נטו: ₪38 · 4 חשבוניות</div></div>
+    <div class="s-title">פירוט עלות מזון לפי ספק — Smart Basic 2 ✓ (נטו, ללא מע"מ)</div>
+    <div class="sup-grid" id="sup_grid">
+      <div style="color:#aaa;font-size:12px">טוען נתוני ספקים...</div>
     </div>
-    <div class="sup-total">
-      סה"כ כולל מע"מ: <strong style="color:#0a2342">₪18,058</strong> &nbsp;·&nbsp; נטו ללא מע"מ: <strong style="color:#ef4444">₪15,621</strong> &nbsp;·&nbsp; <span style="color:#bbb">Smart Basic 2 · עודכן 20/05/2026</span>
-    </div>
+    <div class="sup-total" id="sup_total">—</div>
   </div>
 
   <!-- Workers table -->
@@ -357,6 +343,7 @@ async function loadData() {
   renderWorkers(null);
 
   try {
+    // Fetch sales + labor from Rosa grSync
     const syncRes = await fetch('https://rosa-6d8ebb9e.base44.app/functions/grSync', {cache:'no-store'});
     const d = await syncRes.json();
     if (!d.diners)        d.diners        = 626;
@@ -364,14 +351,40 @@ async function loadData() {
     if (!d.avg_per_diner) d.avg_per_diner = 112;
     if (!d.ok) throw new Error('sync failed');
 
+    // Calculate food cost directly from Smart Basic 2 — using invoice_total with correct VAT logic
+    const now2 = new Date();
+    const month = now2.getFullYear() + '-' + String(now2.getMonth() + 1).padStart(2, '0');
+    const appId = '699c4d19592434b7f867b2c6';
+    const grEmail = 'guestroom@smartplate.org';
+    let foodCostGross = 0, foodCostNet = 0;
+    const supMap = {};
+    try {
+      const frRes = await fetch('https://rosa-6d8ebb9e.base44.app/api/apps/' + appId + '/entities/SupplyReceipt/filter?limit=500', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ created_by: grEmail, is_refund: false })
+      });
+      if (frRes.ok) {
+        const frData = await frRes.json();
+        const recs = Array.isArray(frData) ? frData : (frData.records || []);
+        for (const r of recs) {
+          if (!(r.invoice_date || '').startsWith(month)) continue;
+          const g = r.invoice_total || 0;
+          const n = r.is_zero_vat ? g : g / 1.18;
+          foodCostGross += g; foodCostNet += n;
+          const s = r.supplier_name || 'אחר';
+          supMap[s] = (supMap[s] || 0) + n;
+        }
+      }
+    } catch(fe) { console.warn('food cost fetch failed', fe); }
+
     const salesVat  = d.sales_vat;
     const salesNet  = d.sales_net;
     const labor     = d.labor_cost;
     const laborPct  = d.labor_pct;
-    const foodPct   = d.food_pct;
-    const foodCost  = Math.round(salesNet * foodPct / 100);
+    const foodCost  = Math.round(foodCostNet);
+    const foodPct   = salesNet > 0 ? Math.round(foodCostNet / salesNet * 1000) / 10 : d.food_pct;
     const tips      = d.tips;
-    const totalPct  = d.total_pct;
+    const totalPct  = Math.round((laborPct + foodPct) * 10) / 10;
     const days      = d.days_collected;
     const dailyAvg  = salesVat / days;
     const forecast  = dailyAvg * 31;
@@ -420,6 +433,20 @@ async function loadData() {
     document.getElementById('cr_tips').innerHTML  = `${fmt(tips)} <small style="color:#6d28d9;font-weight:700">${tipsPct}%</small>`;
     document.getElementById('cr_sales').textContent = fmt(salesVat);
     document.getElementById('cr_total').textContent = totalPct + '%';
+
+    // Render supplier grid dynamically
+    const supGrid = document.getElementById('sup_grid');
+    const supTotal = document.getElementById('sup_total');
+    const supEntries = Object.entries(supMap).sort((a,b) => b[1]-a[1]);
+    if (supEntries.length > 0) {
+      supGrid.innerHTML = supEntries.map(([name, net]) => {
+        const gross = Math.round(net * 1.18);
+        return `<div class="sup-box"><div class="sl">${name}</div><div class="sv">₪${Math.round(net).toLocaleString()}</div><div class="ss">כולל מע"מ: ₪${gross.toLocaleString()}</div></div>`;
+      }).join('');
+      supTotal.innerHTML = `נטו ללא מע"מ: <strong style="color:#ef4444">₪${Math.round(foodCostNet).toLocaleString()}</strong> &nbsp;·&nbsp; כולל מע"מ: <strong style="color:#0a2342">₪${Math.round(foodCostGross).toLocaleString()}</strong> &nbsp;·&nbsp; <span style="color:#bbb">Smart Basic 2 · חי</span>`;
+    } else {
+      supGrid.innerHTML = '<div style="color:#aaa;font-size:12px">אין נתוני ספקים לחודש זה</div>';
+    }
 
     renderWorkers(salesVat);
 
