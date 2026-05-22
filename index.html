@@ -49,6 +49,18 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 .pw-err { color:#f87171; font-size:12px; margin-top:8px; min-height:18px; }
 .pw-ok  { color:#34d399; font-size:12px; margin-top:8px; min-height:18px; }
 
+.sup-table { width:100%; border-collapse:collapse; font-size:12px; }
+.sup-table th { color:rgba(255,255,255,0.4); font-size:10px; font-weight:600; text-align:right; padding:4px 6px; border-bottom:1px solid rgba(255,255,255,0.08); }
+.sup-table td { padding:7px 6px; border-bottom:1px solid rgba(255,255,255,0.05); color:rgba(255,255,255,0.85); vertical-align:middle; }
+.sup-table tr:last-child td { border-bottom:none; }
+.sup-table tr:hover td { background:rgba(255,255,255,0.04); }
+.sup-rank { color:rgba(255,255,255,0.3); font-size:10px; width:18px; }
+.sup-name { font-weight:600; }
+.sup-amt { color:#34d399; font-weight:700; text-align:left; white-space:nowrap; }
+.sup-cnt { color:rgba(255,255,255,0.4); font-size:10px; text-align:center; }
+.sup-date { color:rgba(255,255,255,0.35); font-size:10px; text-align:left; white-space:nowrap; }
+.sup-bar-wrap { height:4px; background:rgba(255,255,255,0.08); border-radius:2px; margin-top:3px; }
+.sup-bar { height:4px; border-radius:2px; background:linear-gradient(90deg,#34d399,#059669); }
 /* request form */
 #req-form { display:none; }
 .req-input {
@@ -292,9 +304,20 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
     </div>
 
     <div class="section">
-      <div class="s-title">🍽️ ספקי מזון</div>
-      <div class="sup-grid" id="vendors_grid">
-        <div style="color:#bbb;font-size:12px;">טוען ספקים...</div>
+      <div class="s-title">🧾 ספקי מזון ושתייה — Smart Basic 2</div>
+
+      <!-- Last invoice banner -->
+      <div id="last_invoice_banner" style="background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.3);border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span style="font-size:18px;">📄</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:10px;color:rgba(255,255,255,0.5);margin-bottom:2px;">חשבונית אחרונה שנסרקה</div>
+          <div id="last_inv_text" style="font-size:13px;font-weight:700;color:#fbbf24;">טוען...</div>
+        </div>
+      </div>
+
+      <!-- Suppliers table -->
+      <div id="vendors_grid" style="width:100%;">
+        <div style="color:#bbb;font-size:12px;text-align:center;padding:12px;">טוען ספקים...</div>
       </div>
     </div>
   </div>
@@ -407,10 +430,83 @@ const fmtP = n => n == null ? '—' : n.toFixed(1) + '%';
 const fmtN = n => n == null ? '—' : Math.round(n).toLocaleString('he-IL');
 
 // ─── LOAD DASHBOARD ───
+const SMARTBASIC2_APP_ID = '699c4d19592434b7f867b2c6';
+const GR_EMAIL = 'guestroom@smartplate.org';
+
+// Fetch supply receipts directly from Smart Basic 2 via Base44 entities API
+async function fetchVendors() {
+  try {
+    const now = new Date();
+    const month = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    const APP_ID = '699c4d19592434b7f867b2c6';
+    const GR_MAIL = 'guestroom@smartplate.org';
+
+    const url = `https://api.base44.com/api/apps/${APP_ID}/entities/SupplyReceipt?limit=500&created_by=${encodeURIComponent(GR_MAIL)}&is_refund=false`;
+    const res = await fetch(url);
+    if (!res.ok) return { vendors: [], last_invoice: null };
+    const data = await res.json();
+    const records = data?.records || (Array.isArray(data) ? data : []);
+
+    const supplierMap = {};
+    let latestDate = '';
+    let latestInvoice = null;
+
+    for (const r of records) {
+      if (r.is_refund) continue;
+      const d = r.invoice_date || '';
+      if (!d.startsWith(month)) continue;
+      const gross = Number(r.invoice_total) || 0;
+      const net = r.is_zero_vat ? gross : gross / 1.18;
+      const sup = r.supplier_name || 'אחר';
+
+      if (!supplierMap[sup]) supplierMap[sup] = { gross:0, net:0, count:0, last_date:'', last_inv:'', last_amount:0 };
+      supplierMap[sup].gross += gross;
+      supplierMap[sup].net += net;
+      supplierMap[sup].count++;
+      if (d > supplierMap[sup].last_date) {
+        supplierMap[sup].last_date = d;
+        supplierMap[sup].last_inv = r.invoice_number || '';
+        supplierMap[sup].last_amount = gross;
+      }
+      if (d > latestDate) {
+        latestDate = d;
+        latestInvoice = { supplier: sup, invoice_number: r.invoice_number || '', date: d, amount: gross };
+      }
+    }
+
+    const vendors = Object.entries(supplierMap)
+      .sort((a, b) => b[1].net - a[1].net)
+      .map(([name, data]) => ({
+        name,
+        net: Math.round(data.net),
+        gross: Math.round(data.gross),
+        count: data.count,
+        last_date: data.last_date,
+        last_inv: data.last_inv,
+        last_amount: Math.round(data.last_amount)
+      }));
+
+    return { vendors, last_invoice: latestInvoice };
+  } catch(e) {
+    console.warn('vendors fetch failed:', e);
+    return { vendors: [], last_invoice: null };
+  }
+}
+
 async function loadDashboard() {
   try {
-    const res = await fetch(ROSA);
-    const d   = await res.json();
+    // Fetch main data + vendors in parallel
+    const [res, vData] = await Promise.all([
+      fetch(ROSA).then(r => r.json()).catch(() => ({})),
+      fetchVendors()
+    ]);
+
+    const d = res || {};
+    if (vData.vendors && vData.vendors.length > 0) {
+      d.vendors = vData.vendors;
+      d.last_invoice = vData.last_invoice;
+    }
+
     render(d);
   } catch(e) {
     document.getElementById('loading').style.display = 'none';
@@ -493,21 +589,73 @@ function render(d) {
   document.getElementById('cr_tips').textContent   = fmt(tips);
   document.getElementById('cr_total').textContent  = fmtP(totalPct);
 
-  // Vendors
-  const grid = document.getElementById('vendors_grid');
-  if (vendors && vendors.length > 0) {
-    grid.innerHTML = vendors.map(v => `
-      <div class="sup-box">
-        <div class="sl">${v.name || v.vendor_name || '—'}</div>
-        <div class="sv">${fmt(v.amount || v.total || 0)}</div>
-        <div class="ss">${v.invoices || ''}</div>
-      </div>`).join('');
-  } else {
-    grid.innerHTML = '<div style="color:#bbb;font-size:12px;">אין נתוני ספקים</div>';
-  }
+  // Vendors from grSync (entity cache) OR fetch live from Smart Basic 2
+  renderVendors(vendors, d.last_invoice);
 
   document.getElementById('last_sync').textContent = 'עדכון אחרון: ' + now.toLocaleTimeString('he-IL');
   document.getElementById('loading').style.display = 'none';
+}
+
+// ── RENDER VENDORS ──
+function renderVendors(vendors, lastInvoice) {
+  const grid = document.getElementById('vendors_grid');
+  const banner = document.getElementById('last_inv_text');
+
+  // Last invoice banner
+  if (lastInvoice && lastInvoice.supplier) {
+    const d = lastInvoice.date ? lastInvoice.date.substring(5).split('-').reverse().join('/') : '';
+    banner.textContent = lastInvoice.supplier + ' · ' + lastInvoice.invoice_number + ' · ₪' + Math.round(lastInvoice.amount).toLocaleString('he-IL') + '  (' + d + ')';
+  } else {
+    banner.textContent = '—';
+  }
+
+  if (!vendors || vendors.length === 0) {
+    grid.innerHTML = '<div style="color:#bbb;font-size:12px;text-align:center;padding:12px;">אין נתוני ספקים</div>';
+    return;
+  }
+
+  const maxNet = Math.max(...vendors.map(v => v.net || v.amount || 0));
+  const rows = vendors.map((v, i) => {
+    const net = v.net || v.amount || 0;
+    const gross = v.gross || net * 1.18;
+    const count = v.count || v.invoices || '';
+    const lastDate = v.last_date ? v.last_date.substring(5).split('-').reverse().join('/') : '';
+    const barPct = maxNet > 0 ? (net / maxNet * 100).toFixed(0) : 0;
+    return `<tr>
+      <td class="sup-rank">${i+1}</td>
+      <td class="sup-name">
+        ${v.name || v.vendor_name || '—'}
+        <div class="sup-bar-wrap"><div class="sup-bar" style="width:${barPct}%"></div></div>
+      </td>
+      <td class="sup-amt">₪${Math.round(net).toLocaleString('he-IL')}</td>
+      <td class="sup-cnt">${count} חשב'</td>
+      <td class="sup-date">${lastDate}</td>
+    </tr>`;
+  }).join('');
+
+  // Total row
+  const totalNet = vendors.reduce((s, v) => s + (v.net || v.amount || 0), 0);
+
+  grid.innerHTML = `
+    <table class="sup-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>ספק</th>
+          <th style="text-align:left;">נטו MTD</th>
+          <th style="text-align:center;">חשבוניות</th>
+          <th style="text-align:left;">אחרון</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2" style="font-weight:700;color:rgba(255,255,255,0.6);font-size:11px;padding:8px 6px 4px;">סה"כ עלות מזון נטו</td>
+          <td class="sup-amt" style="font-size:14px;padding:8px 6px 4px;">₪${Math.round(totalNet).toLocaleString('he-IL')}</td>
+          <td colspan="2"></td>
+        </tr>
+      </tfoot>
+    </table>`;
 }
 
 async function syncNow() {
