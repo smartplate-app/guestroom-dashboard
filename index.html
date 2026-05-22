@@ -154,11 +154,16 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 
     <!-- REQUEST FORM -->
     <div id="req-form">
-      <div style="color:rgba(255,255,255,0.6);font-size:12px;margin-bottom:14px;">נשלח בקשה ל-admin ותקבל קוד גישה במייל</div>
-      <input class="req-input" id="req-name" type="text" placeholder="שם מלא" />
+      <div style="color:rgba(255,255,255,0.7);font-size:13px;font-weight:600;margin-bottom:6px;">🔑 בקשת גישה לדשבורד</div>
+      <div style="color:rgba(255,255,255,0.5);font-size:11px;margin-bottom:14px;line-height:1.5;">
+        מלא פרטים ונשלח לך קוד גישה + חשבונית / קישור לתשלום
+      </div>
+      <input class="req-input" id="req-name" type="text" placeholder="שם מלא / עסק" />
       <input class="req-input" id="req-email" type="email" placeholder="כתובת אימייל" dir="ltr" />
-      <button class="pw-btn" onclick="submitRequest()">שלח בקשה</button>
-      <button class="pw-req-btn" onclick="showCode()" style="margin-top:6px;">יש לי קוד — חזור</button>
+      <button class="pw-btn" onclick="submitRequest()" style="background:linear-gradient(135deg,#f59e0b,#d97706);">
+        📧 שלח לי קוד וחשבונית לתשלום
+      </button>
+      <button class="pw-req-btn" onclick="showCode()" style="margin-top:8px;">יש לי קוד — חזור</button>
       <div class="pw-ok" id="req-ok"></div>
       <div class="pw-err" id="req-err"></div>
     </div>
@@ -296,8 +301,8 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 
   <div class="footer">
     <div class="last-sync" id="last_sync">—</div>
-    <button class="refresh-btn" id="syncBtn" onclick="syncNow()">
-      <span>🔄</span> סנכרן עכשיו
+    <button class="refresh-btn" id="syncBtn" onclick="syncNow()" title="משוך נתונים עדכניים מכל המקורות">
+      <span>🔄</span> סנכרן נתונים
     </button>
     <br>
     <span style="margin-top:6px;display:inline-block;">Powered by SmartPlate · Rosa Engine</span>
@@ -371,12 +376,13 @@ async function submitRequest() {
         name, email,
         device_id: getDeviceId(),
         dashboard: 'Guest Room MTD',
+        request_type: 'code_and_invoice',
         timestamp: new Date().toISOString()
       })
     });
   } catch(e) {}
 
-  okEl.textContent = '✅ הבקשה נשלחה! תקבל קוד במייל בקרוב';
+  okEl.textContent = '✅ הבקשה נשלחה! תקבל קוד גישה + חשבונית לתשלום במייל בקרוב';
   document.getElementById('req-name').value = '';
   document.getElementById('req-email').value = '';
 }
