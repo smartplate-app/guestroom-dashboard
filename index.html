@@ -433,7 +433,12 @@ function render(d) {
 
   // Header
   const now = new Date();
-  document.getElementById('badge').textContent  = `MTD מאי ${days} ימים`;
+  // Dynamic month name from API
+  const monthNames = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  const monthStr = d.month || (now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0'));
+  const monthIdx = parseInt(monthStr.split('-')[1]) - 1;
+  const monthName = monthNames[monthIdx] || monthStr;
+  document.getElementById('badge').textContent  = `MTD ${monthName} · ${days} ימים`;
   document.getElementById('hdate').textContent  = now.toLocaleDateString('he-IL', { day:'numeric', month:'long', year:'numeric' });
 
   // KPI row 1
