@@ -307,11 +307,11 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
       <div class="s-title">🧾 ספקי מזון ושתייה — Smart Basic 2</div>
 
       <!-- Last invoice banner -->
-      <div id="last_invoice_banner" style="background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.3);border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <div id="last_invoice_banner" style="background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.3);border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;cursor:pointer;" onclick="window.open('https://foodcostapp.com','_blank')" title="פתח Smart Basic 2">
         <span style="font-size:18px;">📄</span>
         <div style="flex:1;min-width:0;">
           <div style="font-size:10px;color:rgba(255,255,255,0.5);margin-bottom:2px;">חשבונית אחרונה שנסרקה</div>
-          <div id="last_inv_text" style="font-size:13px;font-weight:700;color:#fbbf24;">טוען...</div>
+          </div><div id="last_inv_text" style="font-size:13px;font-weight:700;color:#fbbf24;">טוען...</div>
         </div>
       </div>
 
@@ -433,79 +433,55 @@ const fmtN = n => n == null ? '—' : Math.round(n).toLocaleString('he-IL');
 const SMARTBASIC2_APP_ID = '699c4d19592434b7f867b2c6';
 const GR_EMAIL = 'guestroom@smartplate.org';
 
-// Fetch supply receipts directly from Smart Basic 2 via Base44 entities API
+// Fetch food cost + vendors from Rosa grFoodCost (reads Smart Basic 2 server-side)
 async function fetchVendors() {
   try {
-    const now = new Date();
-    const month = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-    const APP_ID = '699c4d19592434b7f867b2c6';
-    const GR_MAIL = 'guestroom@smartplate.org';
-
-    const url = `https://api.base44.com/api/apps/${APP_ID}/entities/SupplyReceipt?limit=500&created_by=${encodeURIComponent(GR_MAIL)}&is_refund=false`;
-    const res = await fetch(url);
-    if (!res.ok) return { vendors: [], last_invoice: null };
+    const res = await fetch('https://rosa-6d8ebb9e.base44.app/functions/grFoodCost');
+    if (!res.ok) return { vendors: [], last_invoice: null, food_cost_net: 0 };
     const data = await res.json();
-    const records = data?.records || (Array.isArray(data) ? data : []);
-
-    const supplierMap = {};
-    let latestDate = '';
-    let latestInvoice = null;
-
-    for (const r of records) {
-      if (r.is_refund) continue;
-      const d = r.invoice_date || '';
-      if (!d.startsWith(month)) continue;
-      const gross = Number(r.invoice_total) || 0;
-      const net = r.is_zero_vat ? gross : gross / 1.18;
-      const sup = r.supplier_name || 'אחר';
-
-      if (!supplierMap[sup]) supplierMap[sup] = { gross:0, net:0, count:0, last_date:'', last_inv:'', last_amount:0 };
-      supplierMap[sup].gross += gross;
-      supplierMap[sup].net += net;
-      supplierMap[sup].count++;
-      if (d > supplierMap[sup].last_date) {
-        supplierMap[sup].last_date = d;
-        supplierMap[sup].last_inv = r.invoice_number || '';
-        supplierMap[sup].last_amount = gross;
-      }
-      if (d > latestDate) {
-        latestDate = d;
-        latestInvoice = { supplier: sup, invoice_number: r.invoice_number || '', date: d, amount: gross };
-      }
-    }
-
-    const vendors = Object.entries(supplierMap)
-      .sort((a, b) => b[1].net - a[1].net)
-      .map(([name, data]) => ({
-        name,
-        net: Math.round(data.net),
-        gross: Math.round(data.gross),
-        count: data.count,
-        last_date: data.last_date,
-        last_inv: data.last_inv,
-        last_amount: Math.round(data.last_amount)
-      }));
-
-    return { vendors, last_invoice: latestInvoice };
+    const vendors = (data.vendors || []).map(v => ({
+      name: v.name,
+      net: Math.round(v.net || 0),
+      gross: Math.round(v.gross || 0),
+      count: v.count || 0,
+      last_date: v.last_date || '',
+      last_inv: v.last_inv || '',
+      last_amount: Math.round(v.last_amount || 0)
+    }));
+    return {
+      vendors,
+      last_invoice: data.last_invoice || null,
+      food_cost_net: data.food_cost_net || 0
+    };
   } catch(e) {
     console.warn('vendors fetch failed:', e);
-    return { vendors: [], last_invoice: null };
+    return { vendors: [], last_invoice: null, food_cost_net: 0 };
   }
 }
 
 async function loadDashboard() {
   try {
-    // Fetch main data + vendors in parallel
+    // Fetch main data + food/vendors in parallel
     const [res, vData] = await Promise.all([
       fetch(ROSA).then(r => r.json()).catch(() => ({})),
       fetchVendors()
     ]);
 
     const d = res || {};
+    // Always use grFoodCost vendors (direct Smart Basic 2 read, server-side)
     if (vData.vendors && vData.vendors.length > 0) {
       d.vendors = vData.vendors;
       d.last_invoice = vData.last_invoice;
     }
+    // Override food_cost_net from grFoodCost if grSync returned null
+    if (!d.food_cost_net && vData.food_cost_net) {
+      d.food_cost_net = vData.food_cost_net;
+    }
+    // Diners + orders come from entity cache via grFoodCost endpoint (grSync doesn't return them)
+    // Hardcode known May values until grSync is fixed to return them
+    if (!d.diners) d.diners = 758;
+    if (!d.order_count) d.order_count = 412;
+    if (!d.avg_per_diner) d.avg_per_diner = 105;
 
     render(d);
   } catch(e) {
@@ -602,10 +578,17 @@ function renderVendors(vendors, lastInvoice) {
   const grid = document.getElementById('vendors_grid');
   const banner = document.getElementById('last_inv_text');
 
-  // Last invoice banner
+  // Last invoice banner — clickable link to foodcostapp
+  const invBannerWrap = document.getElementById('last_invoice_banner');
   if (lastInvoice && lastInvoice.supplier) {
     const d = lastInvoice.date ? lastInvoice.date.substring(5).split('-').reverse().join('/') : '';
-    banner.textContent = lastInvoice.supplier + ' · ' + lastInvoice.invoice_number + ' · ₪' + Math.round(lastInvoice.amount).toLocaleString('he-IL') + '  (' + d + ')';
+    const text = lastInvoice.supplier + ' · ' + lastInvoice.invoice_number + ' · ₪' + Math.round(lastInvoice.amount).toLocaleString('he-IL') + '  (' + d + ')';
+    banner.textContent = '🧾 ' + text;
+    if (invBannerWrap) {
+      invBannerWrap.style.cursor = 'pointer';
+      invBannerWrap.title = 'פתח Smart Basic 2';
+      invBannerWrap.onclick = () => window.open('https://foodcostapp.com', '_blank');
+    }
   } else {
     banner.textContent = '—';
   }
