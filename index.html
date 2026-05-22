@@ -243,6 +243,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
       <div class="sm">סה"כ עלויות (מזון + שכר) מתוך מכירות נטו</div>
       <div class="big" id="total_pct">—</div>
       <div class="pill pr" id="hero_status">—</div>
+      <div style="font-size:10px;opacity:0.6;margin-top:6px;">יעד: 45%</div>
     </div>
     <div style="text-align:left;direction:ltr;">
       <div style="font-size:11px;opacity:0.7;">שכר</div>
@@ -468,11 +469,12 @@ function render(d) {
 
   document.getElementById('tips_badge').textContent = fmtP(tipsPct) + ' מגרוסס';
 
-  // Hero
+  // Hero — target is 45%
+  const TARGET = 45;
   const hero = document.getElementById('hero_card');
-  hero.className = 'hero ' + (totalPct < 50 ? 'green' : totalPct < 58 ? 'yellow' : 'red');
+  hero.className = 'hero ' + (totalPct <= TARGET ? 'green' : totalPct < TARGET + 5 ? 'yellow' : 'red');
   document.getElementById('total_pct').textContent    = fmtP(totalPct);
-  document.getElementById('hero_status').textContent  = totalPct < 50 ? '✅ מצוין' : totalPct < 58 ? '⚠️ גבוה' : '🔴 קריטי';
+  document.getElementById('hero_status').textContent  = totalPct <= TARGET ? '✅ ביעד (45%)' : totalPct < TARGET + 5 ? '⚠️ מעל יעד (45%)' : '🔴 חריגה מיעד (45%)';
   document.getElementById('hero_labor_pct').textContent = fmtP(laborPct);
   document.getElementById('hero_food_pct').textContent  = fmtP(foodPct);
 
