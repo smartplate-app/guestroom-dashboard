@@ -662,8 +662,27 @@ function renderVendors(vendors, lastInvoice) {
 async function syncNow() {
   const btn = document.getElementById('syncBtn');
   btn.disabled = true;
-  btn.innerHTML = '<span>⏳</span> מסנכרן...';
+  btn.innerHTML = '<span>⏳</span> מושך מ-BeePort...';
   document.getElementById('loading').style.display = 'flex';
+  const lt = document.querySelector('.loading-text');
+  if (lt) lt.textContent = 'מסנכרן עם BeePort POS...';
+
+  try {
+    const syncRes = await fetch('https://rosa-6d8ebb9e.base44.app/functions/grBeePortSync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
+    const syncData = await syncRes.json();
+    if (syncData.ok && lt) {
+      lt.textContent = '✅ ' + syncData.z_count + ' Z-reports · ' + (syncData.diners||0) + ' סועדים';
+      await new Promise(r => setTimeout(r, 900));
+    }
+  } catch(e) {
+    console.warn('BeePort sync error:', e);
+  }
+
+  if (lt) lt.textContent = 'טוען נתונים...';
   await loadDashboard();
   btn.disabled = false;
   btn.innerHTML = '<span>🔄</span> סנכרן עכשיו';
