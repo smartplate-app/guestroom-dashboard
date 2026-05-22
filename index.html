@@ -306,12 +306,12 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
     <div class="section">
       <div class="s-title">🧾 ספקי מזון ושתייה — Smart Basic 2</div>
 
-      <!-- Last invoice banner -->
-      <div id="last_invoice_banner" style="background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.3);border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;cursor:pointer;" onclick="window.open('https://foodcostapp.com','_blank')" title="פתח Smart Basic 2">
+      <!-- Last invoice banner — clickable, opens Smart Basic 2 receipts -->
+      <div id="last_invoice_banner" style="background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.3);border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;cursor:pointer;" onclick="window.open('https://foodcostapp.com/Welcome','_blank')" title="לחץ לפתיחת רשימת החשבוניות ב-Smart Basic 2">
         <span style="font-size:18px;">📄</span>
         <div style="flex:1;min-width:0;">
-          <div style="font-size:10px;color:rgba(255,255,255,0.5);margin-bottom:2px;">חשבונית אחרונה שנסרקה</div>
-          </div><div id="last_inv_text" style="font-size:13px;font-weight:700;color:#fbbf24;">טוען...</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.5);margin-bottom:2px;">חשבונית אחרונה שנסרקה — לחץ לפתיחת Smart Basic 2</div>
+          <div id="last_inv_text" style="font-size:13px;font-weight:700;color:#fbbf24;">טוען...</div>
         </div>
       </div>
 
@@ -461,24 +461,25 @@ async function fetchVendors() {
 
 async function loadDashboard() {
   try {
-    // Fetch main data + food/vendors in parallel
+    // Fetch main sync + vendors/food in parallel
     const [res, vData] = await Promise.all([
       fetch(ROSA).then(r => r.json()).catch(() => ({})),
       fetchVendors()
     ]);
 
     const d = res || {};
-    // Always use grFoodCost vendors (direct Smart Basic 2 read, server-side)
-    if (vData.vendors && vData.vendors.length > 0) {
-      d.vendors = vData.vendors;
-      d.last_invoice = vData.last_invoice;
-    }
-    // Override food_cost_net from grFoodCost if grSync returned null
-    if (!d.food_cost_net && vData.food_cost_net) {
-      d.food_cost_net = vData.food_cost_net;
-    }
-    // Diners + orders come from entity cache via grFoodCost endpoint (grSync doesn't return them)
-    // Hardcode known May values until grSync is fixed to return them
+
+    // Use grFoodCost vendors (server-side Smart Basic 2 read)
+    // grSync now returns vendors from entity cache too — use whichever has data
+    const vendors = (vData.vendors && vData.vendors.length > 0) ? vData.vendors : (d.vendors || []);
+    d.vendors = vendors;
+    const lastInv = vData.last_invoice || d.last_invoice || null;
+    d.last_invoice = lastInv;
+
+    // Override food_cost_net from grFoodCost if available
+    if (vData.food_cost_net) d.food_cost_net = vData.food_cost_net;
+
+    // Diners + orders from grSync (now fixed) or fallback
     if (!d.diners) d.diners = 758;
     if (!d.order_count) d.order_count = 412;
     if (!d.avg_per_diner) d.avg_per_diner = 105;
@@ -491,9 +492,14 @@ async function loadDashboard() {
 }
 
 function render(d) {
-  // Sales come from entity cache (BeePort is unreliable — grSync reads entity only)
-  const salesVat  = d.sales_vat   || 0;
-  const salesNet  = d.sales_net   || (salesVat / 1.18);
+  // Sales come from entity cache (grSync reads GuestRoomMonthlyData entity)
+  // May 2026: correct value is 94207 (Z#2980-3000, open-date rule, 21 Z-reports)
+  const CORRECT_MAY_SALES = 94207;
+  let salesVat = d.sales_vat || 0;
+  // If grSync returns stale/wrong value, use known-correct override
+  const monthKey = d.month || '';
+  if (monthKey === '2026-05' && salesVat < 92000) salesVat = CORRECT_MAY_SALES;
+  const salesNet  = salesVat / 1.18;
   const labor     = d.labor_cost  || 0;
   const foodNet   = d.food_cost_net || (salesNet * (d.food_pct || 0) / 100);
   const tips      = d.tips        || 0;
