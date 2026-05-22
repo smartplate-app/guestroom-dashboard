@@ -16,14 +16,16 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 }
 .h-title { font-size: 20px; font-weight: 800; }
 .h-sub { font-size: 10px; opacity: 0.45; margin-top: 2px; }
-.h-badge { background: rgba(255,255,255,0.13); border: 1px solid rgba(255,255,255,0.22); border-radius: 18px; padding: 5px 14px; font-size: 12px; font-weight: 700; text-align:center; }
-.h-date { font-size: 10px; opacity: 0.45; margin-top: 4px; text-align:center; }
+.h-right { text-align: center; }
+.h-badge { background: rgba(255,255,255,0.13); border: 1px solid rgba(255,255,255,0.22); border-radius: 18px; padding: 5px 14px; font-size: 12px; font-weight: 700; }
+.h-date { font-size: 10px; opacity: 0.45; margin-top: 4px; }
 
-.loading { text-align:center; padding: 60px 20px; color: #888; font-size: 14px; }
-.spin { display:inline-block; width:28px; height:28px; border:3px solid #e2e8f0; border-top-color:#3d1a7a; border-radius:50%; animation: spin 0.8s linear infinite; margin-bottom:12px; }
+.loading-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(240,242,245,0.95); z-index:200; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.spin { width:32px; height:32px; border:3px solid #e2e8f0; border-top-color:#3d1a7a; border-radius:50%; animation: spin 0.8s linear infinite; margin-bottom:14px; }
 @keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { color:#555; font-size:14px; }
 
-.container { max-width: 980px; margin: 0 auto; padding: 18px 14px; display:none; }
+.container { max-width: 980px; margin: 0 auto; padding: 18px 14px; }
 
 .kpi-row { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
 .kpi { background: white; border-radius: 12px; padding: 14px 16px; flex: 1; min-width: 130px;
@@ -47,7 +49,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 .by { background: #fff8e1; color: #e65100; }
 .bc { background: #e0f7fa; color: #00838f; }
 .bar { background: #eee; border-radius: 4px; height: 6px; margin-top: 7px; overflow: hidden; }
-.bf { height: 100%; border-radius: 4px; }
+.bf { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
 
 .section { background: white; border-radius: 12px; padding: 16px 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); margin-bottom: 14px; }
 .s-title { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
@@ -58,17 +60,20 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 .hero.green  { background: linear-gradient(135deg, #166534, #16a34a); }
 .hero.yellow { background: linear-gradient(135deg, #92400e, #d97706); }
 .hero.red    { background: linear-gradient(135deg, #7f1d1d, #dc2626); }
-.hero .big { font-size: 30px; font-weight: 800; }
-.hero .sm  { font-size: 10px; opacity: 0.6; margin-top: 2px; }
+.hero .big { font-size: 36px; font-weight: 800; }
+.hero .sm  { font-size: 10px; opacity: 0.7; margin-top: 2px; }
 .pill { display: inline-block; border-radius: 16px; padding: 3px 12px; font-size: 12px; font-weight: 700; margin-top: 6px; }
-.pr { background: #ef4444; color: white; }
-.pg { background: #34a853; color: white; }
-.py { background: #f59e0b; color: white; }
+.pr { background: rgba(255,255,255,0.25); color: white; }
 
 .cr { display: flex; justify-content: space-between; align-items: center; padding: 9px 11px; border-radius: 7px; margin-bottom: 6px; }
-.cr.n { background: #f8f9fa; } .cr.p { background: #fdf4ff; } .cr.y { background: #fff8e1; }
-.cr.c { background: #e0f7fa; } .cr.g { background: #f0fdf4; } .cr.d { background: #1a0a42; }
-.cr .l { font-size: 11px; color: #555; } .cr .src { font-size: 9px; color: #bbb; margin-top: 1px; }
+.cr.n { background: #f8f9fa; }
+.cr.p { background: #fdf4ff; }
+.cr.y { background: #fff8e1; }
+.cr.c { background: #e0f7fa; }
+.cr.g { background: #f0fdf4; }
+.cr.d { background: #1a0a42; }
+.cr .l { font-size: 11px; color: #555; }
+.cr .src { font-size: 9px; color: #bbb; margin-top: 1px; }
 .cr.d .l { color: rgba(255,255,255,0.65); font-size: 12px; font-weight: 700; }
 .cr .v { font-size: 12px; font-weight: 800; color: #0a0a2e; }
 .cr.d .v { color: white; font-size: 15px; }
@@ -78,26 +83,14 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 .sup-box .sl { font-size: 11px; color: #666; margin-bottom: 3px; }
 .sup-box .sv { font-size: 15px; font-weight: 800; color: #0a0a2e; }
 .sup-box .ss { font-size: 9px; color: #aaa; margin-top: 2px; }
-.sup-total { margin-top: 10px; text-align: center; font-size: 10px; color: #aaa; }
-
-.w-table { width: 100%; border-collapse: collapse; font-size: 11px; }
-.w-table th { background: #1a0a42; color: white; padding: 8px 10px; font-size: 10px; font-weight: 700; text-align: right; }
-.w-table td { padding: 8px 10px; border-bottom: 1px solid #f0f0f0; color: #333; vertical-align: middle; }
-.w-table tr:nth-child(even) td { background: #f9f9fb; }
-.w-table tr:last-child td { border-bottom: none; }
-.w-table .role-tag { font-size: 9px; color: #999; }
-.w-table tfoot td { background: #1a0a42; color: white; font-weight: 700; padding: 8px 10px; }
-
-.day { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
-.dl { font-size: 10px; color: #888; min-width: 55px; text-align: right; }
-.dbg { flex: 1; background: #eee; border-radius: 4px; height: 16px; overflow: hidden; }
-.dbf { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-right: 5px; font-size: 9px; color: white; font-weight: 700; }
-.dv { font-size: 11px; font-weight: 700; color: #0a0a2e; min-width: 70px; text-align: left; }
-.day.today .dv { color: #1a73e8; }
 
 .footer { text-align: center; font-size: 10px; color: #ccc; padding: 12px 0 6px; line-height: 1.9; }
-.refresh-btn { display:inline-block; margin-top:8px; padding:5px 16px; background:#3d1a7a; color:white; border:none; border-radius:20px; font-size:11px; font-weight:700; cursor:pointer; }
-.last-refresh { font-size:10px; color:#aaa; margin-top:6px; }
+.refresh-btn { display:inline-flex; align-items:center; gap:6px; margin-top:8px; padding:6px 18px; background:#3d1a7a; color:white; border:none; border-radius:20px; font-size:11px; font-weight:700; cursor:pointer; transition: opacity 0.2s; }
+.refresh-btn:hover { opacity: 0.85; }
+.refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.last-sync { font-size:10px; color:#aaa; margin-top:6px; }
+
+.error-box { background: #fce4ec; color: #b71c1c; border-radius: 10px; padding: 14px 18px; margin: 12px 0; font-size: 12px; }
 </style>
 </head>
 <body>
@@ -105,21 +98,21 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 <div class="header">
   <div>
     <div class="h-title">🏠 Guest Room</div>
-    <div class="h-sub">BeePort POS · Shiftorganizer · Smart Basic 2</div>
+    <div class="h-sub">BeePort POS · ShiftOrganizer · Smart Basic 2</div>
   </div>
-  <div>
-    <div class="h-badge" id="badge">טוען נתונים...</div>
-    <div class="h-date" id="hdate">מתחבר...</div>
+  <div class="h-right">
+    <div class="h-badge" id="badge">טוען...</div>
+    <div class="h-date" id="hdate">—</div>
   </div>
 </div>
 
-<div class="loading" id="loading" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(240,242,245,0.9);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-  <div class="spin"></div><br>טוען נתונים חיים מ-Rosa...
+<div class="loading-overlay" id="loading">
+  <div class="spin"></div>
+  <div class="loading-text">טוען נתונים חיים...</div>
 </div>
 
-<div class="container" id="main" style="display:block">
+<div class="container" id="main">
 
-  <!-- Row 1 KPIs -->
   <div class="kpi-row">
     <div class="kpi k-sales">
       <div class="kpi-lbl">מכירות MTD כולל מע"מ</div>
@@ -130,7 +123,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
     <div class="kpi k-net">
       <div class="kpi-lbl">מכירות נטו ללא מע"מ</div>
       <div class="kpi-val" id="sales_net">—</div>
-      <div class="kpi-sub">17% מע"מ</div>
+      <div class="kpi-sub">מע"מ 18%</div>
     </div>
     <div class="kpi k-diners">
       <div class="kpi-lbl">סועדים</div>
@@ -146,12 +139,11 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
     </div>
   </div>
 
-  <!-- Row 2 KPIs -->
   <div class="kpi-row">
     <div class="kpi k-labor">
       <div class="kpi-lbl">עלות עבודה MTD</div>
       <div class="kpi-val" id="labor_val">—</div>
-      <div class="kpi-sub">✓ Shiftorganizer</div>
+      <div class="kpi-sub">✓ ShiftOrganizer</div>
       <span class="badge" id="labor_badge">—</span>
       <div class="bar"><div class="bf" id="labor_bar" style="background:#ec4899;width:0%"></div></div>
     </div>
@@ -165,7 +157,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
     <div class="kpi k-tips">
       <div class="kpi-lbl">טיפים MTD</div>
       <div class="kpi-val" id="tips_val">—</div>
-      <div class="kpi-sub">✓ Shiftorganizer</div>
+      <div class="kpi-sub">✓ ShiftOrganizer</div>
       <span class="badge bb" id="tips_badge">—</span>
     </div>
     <div class="kpi k-fore">
@@ -175,293 +167,232 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
     </div>
   </div>
 
-  <!-- Hero -->
-  <div class="hero green" id="hero_card">
+  <div class="hero" id="hero_card">
     <div>
-      <div class="sm">סה"כ עלויות מזון + שכר</div>
+      <div class="sm">סה"כ עלויות (מזון + שכר) מתוך מכירות נטו</div>
       <div class="big" id="total_pct">—</div>
-      <div id="hero_pill" class="pill pg">—</div>
+      <div class="pill pr" id="hero_status">—</div>
     </div>
-    <div style="text-align:left">
-      <div style="font-size:11px;opacity:0.7">עבודה</div>
-      <div style="font-size:20px;font-weight:800" id="hero_labor_pct">—</div>
-      <div style="font-size:11px;opacity:0.7;margin-top:6px">מזון</div>
-      <div style="font-size:20px;font-weight:800" id="hero_food_pct">—</div>
+    <div style="text-align:left; direction:ltr;">
+      <div style="font-size:11px;opacity:0.7;">שכר</div>
+      <div style="font-size:24px;font-weight:800;" id="hero_labor_pct">—</div>
+      <div style="font-size:11px;opacity:0.7;margin-top:6px;">מזון</div>
+      <div style="font-size:24px;font-weight:800;" id="hero_food_pct">—</div>
     </div>
   </div>
 
-  <!-- Two col: costs + daily -->
   <div class="two">
     <div class="section">
-      <div class="s-title">סיכום עלויות — מקורות חיים ✓</div>
+      <div class="s-title">📊 סיכום עלויות</div>
       <div class="cr g">
-        <div><div class="l">סועדים</div><div class="src">📦 BeePort POS</div></div>
-        <span class="v" style="color:#06b6d4" id="cr_diners">—</span>
+        <div><div class="l">סועדים</div><div class="src">BeePort POS</div></div>
+        <span class="v" id="cr_diners">—</span>
       </div>
       <div class="cr c">
-        <div><div class="l">עסקאות</div><div class="src">📦 BeePort POS</div></div>
-        <span class="v" style="color:#10b981" id="cr_orders">—</span>
+        <div><div class="l">עסקאות</div><div class="src">BeePort POS</div></div>
+        <span class="v" id="cr_orders">—</span>
       </div>
       <div class="cr p">
-        <div><div class="l">עלות עבודה</div><div class="src">📊 Shiftorganizer</div></div>
-        <span class="v" style="color:#ec4899" id="cr_labor">—</span>
+        <div><div class="l">ממוצע לסועד</div><div class="src">BeePort POS</div></div>
+        <span class="v" id="cr_ppa">—</span>
+      </div>
+      <div class="cr p">
+        <div><div class="l">עלות שכר</div><div class="src">ShiftOrganizer</div></div>
+        <span class="v" id="cr_labor">—</span>
       </div>
       <div class="cr y">
-        <div><div class="l">עלות מזון (ללא מע"מ)</div><div class="src">🧾 Smart Basic 2</div></div>
-        <span class="v" style="color:#e65100" id="cr_food">—</span>
+        <div><div class="l">עלות מזון (נטו)</div><div class="src">Smart Basic 2</div></div>
+        <span class="v" id="cr_food">—</span>
       </div>
       <div class="cr n">
-        <div><div class="l">טיפים</div><div class="src">💳 Shiftorganizer</div></div>
-        <span class="v" style="color:#6d28d9" id="cr_tips">—</span>
+        <div><div class="l">טיפים</div><div class="src">ShiftOrganizer</div></div>
+        <span class="v" id="cr_tips">—</span>
       </div>
-      <div class="cr n">
-        <div><div class="l">מכירות ברוטו</div><div class="src">📦 BeePort</div></div>
-        <span class="v" id="cr_sales">—</span>
-      </div>
-      <div class="cr d" style="margin-top:8px">
-        <span class="l">סה"כ עבודה + מזון</span>
+      <div class="cr d">
+        <div><div class="l">סה"כ עלויות</div></div>
         <span class="v" id="cr_total">—</span>
       </div>
     </div>
 
     <div class="section">
-      <div class="s-title">מכירות יומיות — מאי 2026 · BeePort ✓</div>
-      <div id="daily_bars">
-        <!-- Static daily data updated 20/05 -->
-        <div class="day today"><div class="dl">20/5<br>ד׳ היום</div><div class="dbg"><div class="dbf" style="width:45%;background:#1a73e8">היום</div></div><div class="dv">₪4,108</div></div>
-        <div class="day"><div class="dl">19/5 ג׳</div><div class="dbg"><div class="dbf" style="width:80%;background:#34a853">100%</div></div><div class="dv">₪4,752</div></div>
-        <div class="day"><div class="dl">18/5 ב׳</div><div class="dbg"><div class="dbf" style="width:72%;background:#34a853">90%</div></div><div class="dv">₪4,298</div></div>
-        <div class="day"><div class="dl">17/5 א׳</div><div class="dbg"><div class="dbf" style="width:65%;background:#f59e0b">82%</div></div><div class="dv">₪3,869</div></div>
-        <div class="day"><div class="dl">16/5 ש׳</div><div class="dbg"><div class="dbf" style="width:100%;background:#34a853">100%</div></div><div class="dv">₪5,950</div></div>
-        <div class="day"><div class="dl">15/5 ו׳</div><div class="dbg"><div class="dbf" style="width:95%;background:#34a853">95%</div></div><div class="dv">₪5,650</div></div>
-        <div class="day"><div class="dl">14/5 ה׳</div><div class="dbg"><div class="dbf" style="width:68%;background:#f59e0b">85%</div></div><div class="dv">₪4,036</div></div>
-        <div class="day"><div class="dl">13/5 ד׳</div><div class="dbg"><div class="dbf" style="width:60%;background:#f59e0b">75%</div></div><div class="dv">₪3,570</div></div>
-        <div class="day"><div class="dl">12/5 ג׳</div><div class="dbg"><div class="dbf" style="width:75%;background:#34a853">94%</div></div><div class="dv">₪4,466</div></div>
-        <div class="day"><div class="dl">11/5 ב׳</div><div class="dbg"><div class="dbf" style="width:70%;background:#34a853">88%</div></div><div class="dv">₪4,168</div></div>
+      <div class="s-title">🛒 ספקים — עלות מזון נטו</div>
+      <div class="sup-grid" id="sup_grid">
+        <div style="color:#aaa;font-size:12px;">טוען ספקים...</div>
+      </div>
+      <div style="margin-top:10px;padding:8px 11px;background:#fdf8f0;border-radius:7px;display:flex;justify-content:space-between;">
+        <span style="font-size:11px;color:#888;">סה"כ עלות מזון גולמי</span>
+        <span style="font-size:12px;font-weight:800;" id="food_gross_total">—</span>
       </div>
     </div>
   </div>
 
-  <!-- Supplier breakdown — dynamic -->
   <div class="section">
-    <div class="s-title">פירוט עלות מזון לפי ספק — Smart Basic 2 ✓ (נטו, ללא מע"מ)</div>
-    <div class="sup-grid" id="sup_grid">
-      <div style="color:#aaa;font-size:12px">טוען נתוני ספקים...</div>
+    <div class="s-title">📅 מכירות יומיות — חודש עד כה</div>
+    <div id="daily_chart" style="padding:4px 0;">
+      <div style="color:#aaa;font-size:12px;text-align:center;padding:20px;">אין נתוני מכירות יומיות</div>
     </div>
-    <div class="sup-total" id="sup_total">—</div>
-  </div>
-
-  <!-- Workers table -->
-  <div class="section">
-    <div class="s-title">פירוט עובדים מתחילת החודש — Shiftorganizer ✓ (חברה 2217)</div>
-    <table class="w-table">
-      <thead>
-        <tr>
-          <th>עובד / תפקיד</th>
-          <th>שעות</th>
-          <th>עלות מעסיק</th>
-          <th>עלות נטו</th>
-          <th>טיפים</th>
-          <th>טיפים %</th>
-        </tr>
-      </thead>
-      <tbody id="workers_body">
-        <!-- populated by JS -->
-      </tbody>
-      <tfoot>
-        <tr id="workers_foot">
-          <td colspan="6" style="text-align:center">טוען...</td>
-        </tr>
-      </tfoot>
-    </table>
-    <div style="margin-top:8px;font-size:9px;color:#bbb;text-align:center">
-      Shiftorganizer · חברה 2217 · עלות נטו = עלות מעסיק בניכוי טיפים · עודכן 20/05/2026
-    </div>
-  </div>
-
-  <div style="text-align:center; padding-bottom:8px;">
-    <button class="refresh-btn" onclick="loadData()">🔄 רענן נתונים</button>
-    <div class="last-refresh" id="last_refresh"></div>
   </div>
 
   <div class="footer">
-    מכירות + סועדים: BeePort POS via Rosa &nbsp;·&nbsp; עלות עבודה + טיפים: Shiftorganizer &nbsp;·&nbsp; עלות מזון: Smart Basic 2<br>
-    הדאשבורד מתעדכן אוטומטית כל בוקר בשעה 08:00
+    <div>עודכן לאחרונה: <span id="last_updated_ts">—</span></div>
+    <div class="last-sync" id="sync_status">—</div>
+    <button class="refresh-btn" onclick="refreshData()" id="refresh_btn">🔄 עדכן נתונים</button>
   </div>
+
 </div>
 
 <script>
-function fmt(n) { return '₪' + Math.round(n).toLocaleString('he-IL'); }
-function num(n) { return Math.round(n).toLocaleString('he-IL'); }
+const ROSA = 'https://rosa-6d8ebb9e.base44.app/functions';
 
-function pctBadge(pct, el, threshold) {
-  if (pct <= threshold - 3) { el.className = 'badge bg'; return '✅ ' + pct + '%'; }
-  else if (pct <= threshold) { el.className = 'badge by'; return pct + '% ממכירות'; }
-  else { el.className = 'badge br'; return '⚠️ ' + pct + '%'; }
+function fmt(n) {
+  if (n == null || isNaN(n)) return '—';
+  return '₪' + Math.round(n).toLocaleString('he-IL');
 }
+function pct(n) { return (n == null ? '—' : n.toFixed(1) + '%'); }
+function clr(p) { return p < 45 ? 'green' : p < 55 ? 'yellow' : 'red'; }
 
-// Worker data from Shiftorganizer (updated 20/05/2026)
-// Total labor cost: ₪17,298 net, ₪28,064 gross employer, 20 days
-const WORKERS = [
-  { name: 'ריטה ביאר',     role: 'מנהלת משמרת', hours: 184.5, gross: 6420, tips: 2310, net: 4110 },
-  { name: 'אנה שינגל',     role: 'ברמנית',       hours: 172.0, gross: 5630, tips: 1980, net: 3650 },
-  { name: 'רניה חאג׳',     role: 'מלצרית',       hours: 165.5, gross: 5330, tips: 2150, net: 3180 },
-  { name: 'רועי מזרחי',    role: 'מלצר',         hours: 158.0, gross: 4850, tips: 1870, net: 2980 },
-  { name: 'יואב בן-דוד',   role: 'ברמן עמדה',    hours: 141.0, gross: 3750, tips: 1320, net: 2430 },
-  { name: 'גל טל',         role: 'מארחת',        hours: 112.5, gross: 1510, tips: 590,  net: 920  },
-  { name: 'שי שרון',       role: 'שליח',         hours: 18.0,  gross: 574,  tips: 136,  net: 28   },
-];
-
-function renderWorkers(salesVat) {
-  const body = document.getElementById('workers_body');
-  const foot = document.getElementById('workers_foot');
-  let totalGross = 0, totalNet = 0, totalTips = 0, totalHours = 0;
-  body.innerHTML = WORKERS.map(w => {
-    totalGross += w.gross; totalNet += w.net; totalTips += w.tips; totalHours += w.hours;
-    const tipsPct = salesVat ? ((w.tips / salesVat) * 100).toFixed(1) + '%' : '—';
-    return `<tr>
-      <td><div style="font-weight:700">${w.name}</div><div class="role-tag">${w.role}</div></td>
-      <td style="font-weight:600;color:#3d1a7a">${w.hours.toFixed(1)}</td>
-      <td style="color:#888">${fmt(w.gross)}</td>
-      <td style="font-weight:700;color:#ec4899">${fmt(w.net)}</td>
-      <td style="color:#8b5cf6;font-weight:700">${fmt(w.tips)}</td>
-      <td><span style="background:#f3e8ff;color:#6d28d9;border-radius:6px;padding:2px 7px;font-size:10px;font-weight:700">${tipsPct}</span></td>
-    </tr>`;
-  }).join('');
-  const totalTipsPct = salesVat ? ((totalTips / salesVat) * 100).toFixed(1) + '%' : '—';
-  foot.innerHTML = `
-    <td>סה"כ ${WORKERS.length} עובדים</td>
-    <td>${totalHours.toFixed(1)} שעות</td>
-    <td>${fmt(totalGross)}</td>
-    <td>${fmt(totalNet)}</td>
-    <td>${fmt(totalTips)}</td>
-    <td>${totalTipsPct}</td>`;
-}
-
-async function loadData() {
+async function loadDashboard() {
   document.getElementById('loading').style.display = 'flex';
-  renderWorkers(null);
-
   try {
-    // Fetch sales + labor from Rosa grSync
-    const syncRes = await fetch('https://rosa-6d8ebb9e.base44.app/functions/grSync', {cache:'no-store'});
-    const d = await syncRes.json();
-    if (!d.diners)        d.diners        = 626;
-    if (!d.order_count)   d.order_count   = 155;
-    if (!d.avg_per_diner) d.avg_per_diner = 112;
-    if (!d.ok) throw new Error('sync failed');
-
-    // Calculate food cost directly from Smart Basic 2 — using invoice_total with correct VAT logic
-    const now2 = new Date();
-    const month = now2.getFullYear() + '-' + String(now2.getMonth() + 1).padStart(2, '0');
-    const appId = '699c4d19592434b7f867b2c6';
-    const grEmail = 'guestroom@smartplate.org';
-    let foodCostGross = 0, foodCostNet = 0;
-    const supMap = {};
-    try {
-      const frRes = await fetch('https://rosa-6d8ebb9e.base44.app/api/apps/' + appId + '/entities/SupplyReceipt/filter?limit=500', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ created_by: grEmail, is_refund: false })
-      });
-      if (frRes.ok) {
-        const frData = await frRes.json();
-        const recs = Array.isArray(frData) ? frData : (frData.records || []);
-        for (const r of recs) {
-          if (!(r.invoice_date || '').startsWith(month)) continue;
-          const g = r.invoice_total || 0;
-          const n = r.is_zero_vat ? g : g / 1.18;
-          foodCostGross += g; foodCostNet += n;
-          const s = r.supplier_name || 'אחר';
-          supMap[s] = (supMap[s] || 0) + n;
-        }
-      }
-    } catch(fe) { console.warn('food cost fetch failed', fe); }
-
-    const salesVat  = d.sales_vat;
-    const salesNet  = d.sales_net;
-    const labor     = d.labor_cost;
-    const laborPct  = d.labor_pct;
-    const foodCost  = Math.round(foodCostNet);
-    const foodPct   = salesNet > 0 ? Math.round(foodCostNet / salesNet * 1000) / 10 : d.food_pct;
-    const tips      = d.tips;
-    const totalPct  = Math.round((laborPct + foodPct) * 10) / 10;
-    const days      = d.days_collected;
-    const dailyAvg  = salesVat / days;
-    const forecast  = dailyAvg * 31;
-    const tipsPct   = ((tips / salesVat) * 100).toFixed(1);
-    const diners    = d.diners;
-    const ppa       = d.avg_per_diner || Math.round(salesVat / diners);
-    const orderCount = d.order_count;
-    const avgTicket  = orderCount ? Math.round(salesVat / orderCount) : null;
-
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'});
-    document.getElementById('badge').textContent = `MTD מאי 2026 — 1 עד ${days} במאי`;
-    document.getElementById('hdate').textContent = `עודכן: ${dateStr} · ${days} ימי פעילות`;
-
-    document.getElementById('sales_vat').textContent = fmt(salesVat);
-    document.getElementById('days_badge').textContent = `${days} ימים שנאספו`;
-    document.getElementById('sales_net').textContent = fmt(salesNet);
-    document.getElementById('diners_val').textContent = num(diners);
-    document.getElementById('ppa_badge').textContent = `₪${ppa} לסועד`;
-    document.getElementById('orders_val').textContent = num(orderCount);
-    document.getElementById('avg_ticket_badge').textContent = avgTicket ? `₪${avgTicket} ממוצע` : '';
-    document.getElementById('labor_val').textContent = fmt(labor);
-    document.getElementById('labor_badge').textContent = pctBadge(laborPct, document.getElementById('labor_badge'), 30);
-    document.getElementById('labor_bar').style.width = Math.min(laborPct * 2.5, 100) + '%';
-    document.getElementById('food_val').textContent = fmt(foodCost);
-    document.getElementById('food_badge').textContent = pctBadge(foodPct, document.getElementById('food_badge'), 28);
-    document.getElementById('food_bar').style.width = Math.min(foodPct * 2.5, 100) + '%';
-    document.getElementById('tips_val').textContent = fmt(tips);
-    document.getElementById('tips_badge').textContent = tipsPct + '% ממכירות';
-    document.getElementById('forecast').textContent = fmt(forecast);
-    document.getElementById('daily_avg_sub').textContent = `${fmt(dailyAvg)} ממוצע יומי · 31 ימים`;
-
-    const heroCard = document.getElementById('hero_card');
-    const heroPill = document.getElementById('hero_pill');
-    document.getElementById('total_pct').textContent = totalPct + '%';
-    document.getElementById('hero_labor_pct').textContent = laborPct + '%';
-    document.getElementById('hero_food_pct').textContent = foodPct + '%';
-    if (totalPct <= 45) { heroCard.className='hero green'; heroPill.className='pill pg'; heroPill.textContent='✅ מתחת ליעד 45%'; }
-    else if (totalPct <= 50) { heroCard.className='hero yellow'; heroPill.className='pill py'; heroPill.textContent=`⚠️ מעל היעד ב-${(totalPct-45).toFixed(1)}%`; }
-    else { heroCard.className='hero red'; heroPill.className='pill pr'; heroPill.textContent=`⚠️ מעל היעד ב-${(totalPct-45).toFixed(1)}%`; }
-
-    document.getElementById('cr_diners').textContent = `${num(diners)} סועדים · ₪${ppa} לסועד`;
-    document.getElementById('cr_orders').textContent = `${num(orderCount)} עסקאות · ₪${avgTicket} ממוצע`;
-    document.getElementById('cr_labor').innerHTML = `${fmt(labor)} <small style="color:#ec4899;font-weight:700">${laborPct}%</small>`;
-    document.getElementById('cr_food').innerHTML  = `${fmt(foodCost)} <small style="color:#e65100;font-weight:700">${foodPct}%</small>`;
-    document.getElementById('cr_tips').innerHTML  = `${fmt(tips)} <small style="color:#6d28d9;font-weight:700">${tipsPct}%</small>`;
-    document.getElementById('cr_sales').textContent = fmt(salesVat);
-    document.getElementById('cr_total').textContent = totalPct + '%';
-
-    // Render supplier grid dynamically
-    const supGrid = document.getElementById('sup_grid');
-    const supTotal = document.getElementById('sup_total');
-    const supEntries = Object.entries(supMap).sort((a,b) => b[1]-a[1]);
-    if (supEntries.length > 0) {
-      supGrid.innerHTML = supEntries.map(([name, net]) => {
-        const gross = Math.round(net * 1.18);
-        return `<div class="sup-box"><div class="sl">${name}</div><div class="sv">₪${Math.round(net).toLocaleString()}</div><div class="ss">כולל מע"מ: ₪${gross.toLocaleString()}</div></div>`;
-      }).join('');
-      supTotal.innerHTML = `נטו ללא מע"מ: <strong style="color:#ef4444">₪${Math.round(foodCostNet).toLocaleString()}</strong> &nbsp;·&nbsp; כולל מע"מ: <strong style="color:#0a2342">₪${Math.round(foodCostGross).toLocaleString()}</strong> &nbsp;·&nbsp; <span style="color:#bbb">Smart Basic 2 · חי</span>`;
-    } else {
-      supGrid.innerHTML = '<div style="color:#aaa;font-size:12px">אין נתוני ספקים לחודש זה</div>';
-    }
-
-    renderWorkers(salesVat);
-
-    const timeStr = now.toLocaleTimeString('he-IL', {hour:'2-digit',minute:'2-digit'});
-    document.getElementById('last_refresh').textContent = `עודכן לאחרונה: ${timeStr}`;
-
-    document.getElementById('loading').style.display = 'none';
-
+    const r = await fetch(ROSA + '/grSync', { cache: 'no-store' });
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error || 'grSync failed');
+    render(d);
   } catch(e) {
     document.getElementById('loading').style.display = 'none';
-    document.getElementById('last_refresh').textContent = '⚠️ שגיאת חיבור — נתונים סטטיים מוצגים';
+    document.getElementById('main').innerHTML = '<div class="error-box" style="margin:20px;">❌ שגיאה בטעינת נתונים: ' + e.message + '</div>';
   }
 }
 
-loadData();
+function render(d) {
+  const salesVat   = d.sales_vat || 0;
+  const salesNet   = d.sales_net || 0;
+  const laborCost  = d.labor_cost || 0;
+  const laborPct   = d.labor_pct || 0;
+  const foodNet    = d.food_cost_net || 0;
+  const foodPct    = d.food_pct || 0;
+  const totalPct   = d.total_pct || 0;
+  const tips       = d.tips || 0;
+  const diners     = d.diners || 0;
+  const orders     = d.order_count || 0;
+  const days       = d.days_collected || 0;
+  const ppa        = diners > 0 ? Math.round(salesVat / diners) : 0;
+  const avgTicket  = orders > 0 ? Math.round(salesNet / orders) : 0;
+  const dailyAvg   = days > 0 ? Math.round(salesVat / days) : 0;
+  const forecast   = dailyAvg * 30;
+  const tipsPct    = salesVat > 0 ? (tips / salesVat * 100).toFixed(1) : 0;
+  const vendors    = d.suppliers || [];
+  const foodGross  = d.food_cost_gross || 0;
+
+  // KPI row 1
+  document.getElementById('sales_vat').textContent    = fmt(salesVat);
+  document.getElementById('sales_net').textContent    = fmt(salesNet);
+  document.getElementById('diners_val').textContent   = diners.toLocaleString('he-IL');
+  document.getElementById('orders_val').textContent   = orders.toLocaleString('he-IL');
+  document.getElementById('days_badge').textContent   = days + ' ימי נתונים';
+  document.getElementById('ppa_badge').textContent    = fmt(ppa) + ' לסועד';
+  document.getElementById('avg_ticket_badge').textContent = fmt(avgTicket) + ' ממוצע';
+
+  // KPI row 2
+  document.getElementById('labor_val').textContent    = fmt(laborCost);
+  document.getElementById('food_val').textContent     = fmt(foodNet);
+  document.getElementById('tips_val').textContent     = fmt(tips);
+  document.getElementById('forecast').textContent     = fmt(forecast);
+  document.getElementById('daily_avg_sub').textContent = fmt(dailyAvg) + ' ממוצע יומי';
+
+  const lBadge = document.getElementById('labor_badge');
+  lBadge.textContent = pct(laborPct) + ' משכר';
+  lBadge.className = 'badge ' + (laborPct < 28 ? 'bg' : laborPct < 35 ? 'by' : 'br');
+  document.getElementById('labor_bar').style.width = Math.min(laborPct * 2, 100) + '%';
+
+  const fBadge = document.getElementById('food_badge');
+  fBadge.textContent = pct(foodPct) + ' ממזון';
+  fBadge.className = 'badge ' + (foodPct < 28 ? 'bg' : foodPct < 35 ? 'by' : 'br');
+  document.getElementById('food_bar').style.width = Math.min(foodPct * 2, 100) + '%';
+
+  document.getElementById('tips_badge').textContent = tipsPct + '% ממכירות';
+
+  // Hero
+  const hero = document.getElementById('hero_card');
+  hero.className = 'hero ' + clr(totalPct);
+  document.getElementById('total_pct').textContent    = pct(totalPct);
+  document.getElementById('hero_labor_pct').textContent = pct(laborPct);
+  document.getElementById('hero_food_pct').textContent  = pct(foodPct);
+  const status = totalPct < 45 ? '✅ מצוין' : totalPct < 55 ? '⚠️ סביר' : '🔴 גבוה מדי';
+  document.getElementById('hero_status').textContent = status;
+
+  // Summary rows
+  document.getElementById('cr_diners').textContent  = diners.toLocaleString('he-IL') + ' סועדים';
+  document.getElementById('cr_orders').textContent  = orders.toLocaleString('he-IL') + ' עסקאות';
+  document.getElementById('cr_ppa').textContent     = fmt(ppa);
+  document.getElementById('cr_labor').textContent   = fmt(laborCost) + ' (' + pct(laborPct) + ')';
+  document.getElementById('cr_food').textContent    = fmt(foodNet) + ' (' + pct(foodPct) + ')';
+  document.getElementById('cr_tips').textContent    = fmt(tips) + ' (' + tipsPct + '%)';
+  document.getElementById('cr_total').textContent   = pct(totalPct);
+  document.getElementById('food_gross_total').textContent = fmt(foodGross);
+
+  // Vendors
+  const grid = document.getElementById('sup_grid');
+  if (vendors.length > 0) {
+    grid.innerHTML = vendors.map(v => `
+      <div class="sup-box">
+        <div class="sl">${v.name}</div>
+        <div class="sv">${fmt(v.net)}</div>
+        <div class="ss">נטו ללא מע"מ</div>
+      </div>`).join('');
+  } else {
+    grid.innerHTML = '<div style="color:#aaa;font-size:12px;">אין נתוני ספקים</div>';
+  }
+
+  // Daily sales chart
+  const daily = d.daily_sales || [];
+  const chart = document.getElementById('daily_chart');
+  if (daily.length > 0) {
+    const maxVal = Math.max(...daily.map(x => x.sales || 0));
+    chart.innerHTML = daily.map(x => {
+      const w = maxVal > 0 ? (x.sales / maxVal * 100).toFixed(1) : 0;
+      const isToday = x.date === new Date().toISOString().split('T')[0];
+      const dayName = new Date(x.date).toLocaleDateString('he-IL', {weekday:'short', day:'numeric'});
+      return `<div class="day${isToday ? ' today' : ''}">
+        <div class="dl">${dayName}</div>
+        <div class="dbg"><div class="dbf" style="width:${w}%;background:${isToday ? '#1a73e8' : '#3d1a7a'}">${x.sales > 0 ? '' : ''}</div></div>
+        <div class="dv">${fmt(x.sales)}</div>
+      </div>`;
+    }).join('');
+  } else {
+    chart.innerHTML = '<div style="color:#aaa;font-size:12px;text-align:center;padding:20px;">אין נתוני מכירות יומיות</div>';
+  }
+
+  // Header & footer
+  const now = new Date();
+  const month = d.month || '2026-05';
+  document.getElementById('badge').textContent = month;
+  document.getElementById('hdate').textContent = days + ' ימים · עדכון: ' + now.toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'});
+  document.getElementById('last_updated_ts').textContent = now.toLocaleString('he-IL');
+  document.getElementById('sync_status').textContent = 'מקורות: BeePort POS · ShiftOrganizer · Smart Basic 2';
+
+  document.getElementById('loading').style.display = 'none';
+}
+
+async function refreshData() {
+  const btn = document.getElementById('refresh_btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ מעדכן...';
+  document.getElementById('loading').style.display = 'flex';
+  try {
+    const r = await fetch(ROSA + '/grSync', { cache: 'no-store' });
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error || 'failed');
+    render(d);
+  } catch(e) {
+    alert('שגיאה: ' + e.message);
+    document.getElementById('loading').style.display = 'none';
+  }
+  btn.disabled = false;
+  btn.textContent = '🔄 עדכן נתונים';
+}
+
+loadDashboard();
 </script>
 </body>
 </html>
