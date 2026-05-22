@@ -515,6 +515,7 @@ async function loadDashboard() {
 }
 
 function render(d) {
+  // Sales come from entity cache (BeePort is unreliable — grSync reads entity only)
   const salesVat  = d.sales_vat   || 0;
   const salesNet  = d.sales_net   || (salesVat / 1.18);
   const labor     = d.labor_cost  || 0;
