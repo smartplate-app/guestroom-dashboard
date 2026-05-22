@@ -272,7 +272,7 @@ function render(d) {
   const foodPctRaw = d.food_pct || 0;
   const foodNet    = d.food_cost_net || Math.round(salesNet * foodPctRaw / 100);
   const foodPct    = foodPctRaw;
-  const totalPct   = d.total_pct || 0;
+  const totalPct   = salesNet > 0 ? Math.round((laborCost + foodNet) / salesNet * 1000) / 10 : 0;
   const tips       = d.tips || 0;
   const diners     = d.diners || 0;
   const orders     = d.order_count || 0;
