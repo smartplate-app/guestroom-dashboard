@@ -151,11 +151,10 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 .cr.d .v { color:white; font-size:15px; }
 
 /* ─── SUPPLIER TABLE ─── */
-.sup-table { width:100%; border-collapse:collapse; font-size:12px; }
-.sup-table th { color:rgba(0,0,0,0.4); font-size:9px; font-weight:700; text-align:right; padding:4px 5px 6px; border-bottom:2px solid #eee; }
-.sup-table td { padding:8px 5px; border-bottom:1px solid #f0f0f0; color:#333; vertical-align:middle; }
-.sup-table tr:last-child td { border-bottom:none; }
-.sup-table tbody tr:active { background:#f5f5f5; }
+.sup-grid { display:flex; flex-wrap:wrap; gap:7px; }
+.sup-box { background:#f8f9fa; border-radius:7px; padding:9px 12px; flex:1; min-width:110px; }
+.sup-box .sv { font-size:14px; font-weight:800; color:#0a2342; }
+.sup-box .sl { font-size:9px; color:#999; margin-bottom:3px; }
 
 /* ─── FOOTER ─── */
 .footer { text-align:center; font-size:10px; color:#ccc; padding:12px 0 20px; line-height:2; }
@@ -403,9 +402,8 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
       </div>
 
       <!-- Suppliers table -->
-      <div id="vendors_grid" style="width:100%;">
-        <div style="color:#bbb;font-size:12px;text-align:center;padding:12px;">טוען ספקים...</div>
-      </div>
+      <div id="vendors_grid"></div>
+      <div id="sup-total" style="font-size:11px;color:#666;margin-top:8px;text-align:right;"></div>
     </div>
   </div>
 
@@ -671,17 +669,17 @@ function render(d) {
 function renderVendors(vendors, lastInvoice) {
   const grid = document.getElementById('vendors_grid');
   const banner = document.getElementById('last_inv_text');
-
-  // Last invoice banner — clickable link to foodcostapp
   const invBannerWrap = document.getElementById('last_invoice_banner');
+
+  // Last invoice banner
   if (lastInvoice && lastInvoice.supplier) {
     const d = lastInvoice.date ? lastInvoice.date.substring(5).split('-').reverse().join('/') : '';
-    const text = lastInvoice.supplier + ' · ' + lastInvoice.invoice_number + ' · ₪' + Math.round(lastInvoice.amount).toLocaleString('he-IL') + '  (' + d + ')';
-    banner.textContent = '🧾 ' + text;
+    const amtStr = lastInvoice.amount ? ' · ₪' + Math.round(lastInvoice.amount).toLocaleString('he-IL') : '';
+    const numStr = lastInvoice.invoice_number && lastInvoice.invoice_number !== '—' ? ' · ' + lastInvoice.invoice_number : '';
+    banner.textContent = '🧾 ' + lastInvoice.supplier + numStr + amtStr + (d ? '  (' + d + ')' : '');
     if (invBannerWrap) {
       invBannerWrap.style.cursor = 'pointer';
-      invBannerWrap.title = 'פתח Smart Basic 2';
-      invBannerWrap.onclick = () => window.open('https://foodcostapp.com', '_blank');
+      invBannerWrap.onclick = () => window.open('https://foodcostapp.com/Welcome', '_blank');
     }
   } else {
     banner.textContent = '—';
@@ -692,48 +690,25 @@ function renderVendors(vendors, lastInvoice) {
     return;
   }
 
-  const maxNet = Math.max(...vendors.map(v => v.net || v.amount || 0));
-  const rows = vendors.map((v, i) => {
+  vendors.sort((a, b) => (b.net || b.amount || 0) - (a.net || a.amount || 0));
+
+  grid.innerHTML = '<div class="sup-grid">' + vendors.map(v => {
     const net = v.net || v.amount || 0;
-    const gross = v.gross || net * 1.18;
     const count = v.count || v.invoices || '';
-    const lastDate = v.last_date ? v.last_date.substring(5).split('-').reverse().join('/') : '';
-    const barPct = maxNet > 0 ? (net / maxNet * 100).toFixed(0) : 0;
-    return `<tr>
-      <td class="sup-rank" style="color:#999;font-size:10px;width:18px;">${i+1}</td>
-      <td class="sup-name" style="font-weight:600;color:#1a1a2e;">
-        ${v.name || v.vendor_name || '—'}
-        <div style="height:4px;background:#eee;border-radius:2px;margin-top:3px;overflow:hidden;"><div style="height:4px;border-radius:2px;background:linear-gradient(90deg,#34d399,#059669);width:${barPct}%"></div></div>
-      </td>
-      <td style="color:#059669;font-weight:700;text-align:left;white-space:nowrap;">₪${Math.round(net).toLocaleString('he-IL')}</td>
-      <td style="color:#888;font-size:10px;text-align:center;">${count} חשב'</td>
-      <td style="color:#aaa;font-size:10px;text-align:left;white-space:nowrap;">${lastDate}</td>
-    </tr>`;
-  }).join('');
+    return `<div class="sup-box">
+      <div class="sl">${v.name || v.vendor_name || '—'}</div>
+      <div class="sv">₪${Math.round(net).toLocaleString('he-IL')}</div>
+      ${count ? `<div style="font-size:9px;color:#aaa;margin-top:3px">${count} חשב'</div>` : ''}
+    </div>`;
+  }).join('') + '</div>';
 
-  // Total row
+  // Total
   const totalNet = vendors.reduce((s, v) => s + (v.net || v.amount || 0), 0);
-
-  grid.innerHTML = `
-    <table class="sup-table">
-      <thead>
-        <tr style="border-bottom:2px solid #eee;">
-          <th style="color:#999;font-size:10px;font-weight:600;padding:4px 6px;text-align:right;">#</th>
-          <th style="color:#999;font-size:10px;font-weight:600;padding:4px 6px;text-align:right;">ספק</th>
-          <th style="color:#999;font-size:10px;font-weight:600;padding:4px 6px;text-align:left;">נטו MTD</th>
-          <th style="color:#999;font-size:10px;font-weight:600;padding:4px 6px;text-align:center;">חשבוניות</th>
-          <th style="color:#999;font-size:10px;font-weight:600;padding:4px 6px;text-align:left;">אחרון</th>
-        </tr>
-      </thead>
-      <tbody>${rows}</tbody>
-      <tfoot>
-        <tr>
-          <td colspan="2" style="font-weight:700;color:rgba(0,0,0,0.5);font-size:11px;padding:8px 6px 4px;">סה"כ עלות מזון נטו</td>
-          <td class="sup-amt" style="font-size:14px;padding:8px 6px 4px;">₪${Math.round(totalNet).toLocaleString('he-IL')}</td>
-          <td colspan="2"></td>
-        </tr>
-      </tfoot>
-    </table>`;
+  const totalGross = vendors.reduce((s, v) => s + (v.gross || (v.net || v.amount || 0) * 1.18), 0);
+  const supTotalEl = document.getElementById('sup-total');
+  if (supTotalEl) {
+    supTotalEl.innerHTML = `סה"כ כולל מע"מ: <strong style="color:#0a2342">₪${Math.round(totalGross).toLocaleString('he-IL')}</strong> &nbsp;·&nbsp; נטו ללא מע"מ: <strong style="color:#ef4444">₪${Math.round(totalNet).toLocaleString('he-IL')}</strong>`;
+  }
 }
 
 async function syncNow() {
