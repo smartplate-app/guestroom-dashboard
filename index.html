@@ -16,7 +16,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 }
 .pw-box {
   background:#160936; border:1px solid rgba(255,255,255,0.1);
-  border-radius:20px; padding:36px 32px; max-width:400px; width:100%;
+  border-radius:20px; padding:36px 28px; max-width:400px; width:100%;
   text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.5);
 }
 .pw-logo { font-size:36px; margin-bottom:8px; }
@@ -49,18 +49,6 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 .pw-err { color:#f87171; font-size:12px; margin-top:8px; min-height:18px; }
 .pw-ok  { color:#34d399; font-size:12px; margin-top:8px; min-height:18px; }
 
-.sup-table { width:100%; border-collapse:collapse; font-size:12px; }
-.sup-table th { color:rgba(0,0,0,0.4); font-size:10px; font-weight:600; text-align:right; padding:4px 6px; border-bottom:1px solid rgba(0,0,0,0.1); }
-.sup-table td { padding:7px 6px; border-bottom:1px solid rgba(0,0,0,0.06); color:rgba(0,0,0,0.82); vertical-align:middle; }
-.sup-table tr:last-child td { border-bottom:none; }
-.sup-table tr:hover td { background:rgba(0,0,0,0.03); }
-.sup-rank { color:rgba(0,0,0,0.25); font-size:10px; width:18px; }
-.sup-name { font-weight:600; color:#1a1a2e; }
-.sup-amt { color:#059669; font-weight:700; text-align:left; white-space:nowrap; }
-.sup-cnt { color:rgba(0,0,0,0.4); font-size:10px; text-align:center; }
-.sup-date { color:rgba(0,0,0,0.35); font-size:10px; text-align:left; white-space:nowrap; }
-.sup-bar-wrap { height:4px; background:rgba(0,0,0,0.08); border-radius:2px; margin-top:3px; }
-.sup-bar { height:4px; border-radius:2px; background:linear-gradient(90deg,#34d399,#059669); }
 /* request form */
 #req-form { display:none; }
 .req-input {
@@ -79,17 +67,30 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 .loading-text { color:#555; font-size:14px; }
 
 /* ─── HEADER ─── */
-.header { background:linear-gradient(135deg,#1a0a42 0%,#3d1a7a 100%); color:white; padding:16px 22px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 3px 14px rgba(0,0,0,0.3); }
-.h-title { font-size:20px; font-weight:800; }
-.h-sub { font-size:10px; opacity:0.45; margin-top:2px; }
+.header {
+  background:linear-gradient(135deg,#1a0a42 0%,#3d1a7a 100%);
+  color:white; padding:14px 16px;
+  display:flex; align-items:center; justify-content:space-between;
+  box-shadow:0 3px 14px rgba(0,0,0,0.3);
+  position:sticky; top:0; z-index:100;
+}
+.h-title { font-size:18px; font-weight:800; }
+.h-sub { font-size:9px; opacity:0.45; margin-top:2px; }
 .h-right { text-align:center; }
-.h-badge { background:rgba(255,255,255,0.13); border:1px solid rgba(255,255,255,0.22); border-radius:18px; padding:5px 14px; font-size:12px; font-weight:700; }
-.h-date { font-size:10px; opacity:0.45; margin-top:4px; }
+.h-badge { background:rgba(255,255,255,0.13); border:1px solid rgba(255,255,255,0.22); border-radius:18px; padding:4px 12px; font-size:11px; font-weight:700; }
+.h-date { font-size:9px; opacity:0.45; margin-top:3px; }
 
 /* ─── LAYOUT ─── */
-.container { max-width:980px; margin:0 auto; padding:18px 14px; }
-.kpi-row { display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
-.kpi { background:white; border-radius:12px; padding:14px 16px; flex:1; min-width:130px; box-shadow:0 2px 8px rgba(0,0,0,0.07); border-top:4px solid #ddd; }
+.container { max-width:700px; margin:0 auto; padding:14px 12px; }
+
+/* KPI grid — 2x2 on mobile, 4 on wide */
+.kpi-row { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-bottom:10px; }
+@media(min-width:600px){ .kpi-row { grid-template-columns: repeat(4,1fr); } }
+
+.kpi {
+  background:white; border-radius:12px; padding:13px 14px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.07); border-top:3px solid #ddd;
+}
 .kpi.k-sales  { border-top-color:#3d1a7a; }
 .kpi.k-net    { border-top-color:#6d28d9; }
 .kpi.k-diners { border-top-color:#06b6d4; }
@@ -98,31 +99,45 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 .kpi.k-orders { border-top-color:#10b981; }
 .kpi.k-fore   { border-top-color:#0891b2; }
 .kpi.k-tips   { border-top-color:#8b5cf6; }
-.kpi-lbl { font-size:9px; color:#aaa; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:5px; }
-.kpi-val { font-size:24px; font-weight:800; color:#0a0a2e; line-height:1.1; }
-.kpi-sub { font-size:10px; color:#bbb; margin-top:3px; }
-.badge { display:inline-block; padding:2px 8px; border-radius:9px; font-size:10px; font-weight:700; margin-top:5px; }
+.kpi-lbl { font-size:8px; color:#aaa; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:4px; }
+.kpi-val { font-size:21px; font-weight:800; color:#0a0a2e; line-height:1.1; }
+.kpi-sub { font-size:9px; color:#bbb; margin-top:2px; }
+.badge { display:inline-block; padding:2px 7px; border-radius:9px; font-size:9px; font-weight:700; margin-top:4px; }
 .bg { background:#e8f5e9; color:#2e7d32; }
 .br { background:#fce4ec; color:#c62828; }
 .bb { background:#e3f2fd; color:#1565c0; }
 .bp { background:#f3e8ff; color:#6d28d9; }
 .by { background:#fff8e1; color:#e65100; }
 .bc { background:#e0f7fa; color:#00838f; }
-.bar { background:#eee; border-radius:4px; height:6px; margin-top:7px; overflow:hidden; }
+.bar { background:#eee; border-radius:4px; height:5px; margin-top:6px; overflow:hidden; }
 .bf { height:100%; border-radius:4px; transition:width 0.8s ease; }
-.section { background:white; border-radius:12px; padding:16px 18px; box-shadow:0 2px 8px rgba(0,0,0,0.07); margin-bottom:14px; }
-.s-title { font-size:11px; font-weight:700; color:#888; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px; }
-.two { display:flex; gap:14px; margin-bottom:14px; }
-.two > .section { flex:1; margin-bottom:0; }
-.hero { border-radius:14px; padding:18px 22px; color:white; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
+
+/* ─── HERO CARD ─── */
+.hero {
+  border-radius:14px; padding:16px 18px; color:white; margin-bottom:10px;
+  display:flex; align-items:center; justify-content:space-between;
+}
 .hero.green  { background:linear-gradient(135deg,#166534,#16a34a); }
 .hero.yellow { background:linear-gradient(135deg,#92400e,#d97706); }
 .hero.red    { background:linear-gradient(135deg,#7f1d1d,#dc2626); }
-.hero .big { font-size:36px; font-weight:800; }
-.hero .sm  { font-size:10px; opacity:0.7; margin-top:2px; }
-.pill { display:inline-block; border-radius:16px; padding:3px 12px; font-size:12px; font-weight:700; margin-top:6px; }
+.hero .big { font-size:32px; font-weight:800; }
+.hero .sm  { font-size:9px; opacity:0.7; margin-top:2px; }
+.pill { display:inline-block; border-radius:16px; padding:3px 10px; font-size:11px; font-weight:700; margin-top:5px; }
 .pr { background:rgba(255,255,255,0.25); color:white; }
-.cr { display:flex; justify-content:space-between; align-items:center; padding:9px 11px; border-radius:7px; margin-bottom:6px; }
+
+/* ─── SECTION ─── */
+.section { background:white; border-radius:12px; padding:14px 16px; box-shadow:0 2px 8px rgba(0,0,0,0.07); margin-bottom:10px; }
+.s-title { font-size:10px; font-weight:700; color:#888; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:11px; }
+
+/* ─── TWO-COLUMN → stack on mobile ─── */
+.two { display:flex; flex-direction:column; gap:10px; margin-bottom:10px; }
+@media(min-width:640px){
+  .two { flex-direction:row; }
+  .two > .section { flex:1; margin-bottom:0; }
+}
+
+/* ─── COST ROWS ─── */
+.cr { display:flex; justify-content:space-between; align-items:center; padding:9px 11px; border-radius:8px; margin-bottom:6px; }
 .cr.n { background:#f8f9fa; }
 .cr.p { background:#fdf4ff; }
 .cr.y { background:#fff8e1; }
@@ -132,16 +147,28 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 .cr .l { font-size:11px; color:#555; }
 .cr .src { font-size:9px; color:#bbb; margin-top:1px; }
 .cr.d .l { color:rgba(255,255,255,0.65); font-size:12px; font-weight:700; }
-.cr .v { font-size:12px; font-weight:800; color:#0a0a2e; }
+.cr .v { font-size:13px; font-weight:800; color:#0a0a2e; }
 .cr.d .v { color:white; font-size:15px; }
-.sup-grid { display:flex; flex-wrap:wrap; gap:8px; }
-.sup-box { background:#f8f9fa; border-radius:8px; padding:10px 13px; min-width:140px; flex:1; border-right:3px solid #3d1a7a; }
-.sup-box .sl { font-size:11px; color:#666; margin-bottom:3px; }
-.sup-box .sv { font-size:15px; font-weight:800; color:#0a0a2e; }
-.sup-box .ss { font-size:9px; color:#aaa; margin-top:2px; }
-.footer { text-align:center; font-size:10px; color:#ccc; padding:12px 0 6px; line-height:1.9; }
-.refresh-btn { display:inline-flex; align-items:center; gap:6px; margin-top:8px; padding:6px 18px; background:#3d1a7a; color:white; border:none; border-radius:20px; font-size:11px; font-weight:700; cursor:pointer; transition:opacity 0.2s; }
+
+/* ─── SUPPLIER TABLE ─── */
+.sup-table { width:100%; border-collapse:collapse; font-size:12px; }
+.sup-table th { color:rgba(0,0,0,0.4); font-size:9px; font-weight:700; text-align:right; padding:4px 5px 6px; border-bottom:2px solid #eee; }
+.sup-table td { padding:8px 5px; border-bottom:1px solid #f0f0f0; color:#333; vertical-align:middle; }
+.sup-table tr:last-child td { border-bottom:none; }
+.sup-table tbody tr:active { background:#f5f5f5; }
+
+/* ─── FOOTER ─── */
+.footer { text-align:center; font-size:10px; color:#ccc; padding:12px 0 20px; line-height:2; }
+.refresh-btn {
+  display:inline-flex; align-items:center; gap:6px;
+  margin-top:8px; padding:10px 24px;
+  background:#3d1a7a; color:white; border:none;
+  border-radius:24px; font-size:12px; font-weight:700;
+  cursor:pointer; transition:opacity 0.2s;
+  -webkit-tap-highlight-color:transparent;
+}
 .refresh-btn:hover { opacity:0.85; }
+.refresh-btn:active { opacity:0.7; transform:scale(0.97); }
 .refresh-btn:disabled { opacity:0.5; cursor:not-allowed; }
 .last-sync { font-size:10px; color:#aaa; margin-top:6px; }
 </style>
@@ -262,11 +289,15 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
       <div class="pill pr" id="hero_status">—</div>
       <div style="font-size:10px;opacity:0.6;margin-top:6px;">יעד: 45%</div>
     </div>
-    <div style="text-align:left;direction:ltr;">
-      <div style="font-size:11px;opacity:0.7;">שכר</div>
-      <div style="font-size:24px;font-weight:800;" id="hero_labor_pct">—</div>
-      <div style="font-size:11px;opacity:0.7;margin-top:6px;">מזון</div>
-      <div style="font-size:24px;font-weight:800;" id="hero_food_pct">—</div>
+    <div style="text-align:right;direction:rtl;display:flex;flex-direction:column;gap:4px;min-width:80px;">
+      <div style="background:rgba(255,255,255,0.15);border-radius:8px;padding:6px 10px;">
+        <div style="font-size:9px;opacity:0.7;margin-bottom:2px;">שכר</div>
+        <div style="font-size:20px;font-weight:800;" id="hero_labor_pct">—</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.15);border-radius:8px;padding:6px 10px;">
+        <div style="font-size:9px;opacity:0.7;margin-bottom:2px;">מזון</div>
+        <div style="font-size:20px;font-weight:800;" id="hero_food_pct">—</div>
+      </div>
     </div>
   </div>
 
@@ -307,12 +338,13 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
       <div class="s-title">🧾 ספקי מזון ושתייה — Smart Basic 2</div>
 
       <!-- Last invoice banner — clickable, opens Smart Basic 2 receipts -->
-      <div id="last_invoice_banner" style="background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.3);border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;cursor:pointer;" onclick="window.open('https://foodcostapp.com/Welcome','_blank')" title="לחץ לפתיחת רשימת החשבוניות ב-Smart Basic 2">
-        <span style="font-size:18px;">📄</span>
+      <div id="last_invoice_banner" style="background:#fffbeb;border:1.5px solid #fbbf24;border-radius:10px;padding:11px 13px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;cursor:pointer;-webkit-tap-highlight-color:transparent;" onclick="window.open('https://foodcostapp.com/Welcome','_blank')" title="לחץ לפתיחת רשימת החשבוניות ב-Smart Basic 2">
+        <span style="font-size:20px;">🧾</span>
         <div style="flex:1;min-width:0;">
-          <div style="font-size:10px;color:rgba(0,0,0,0.45);margin-bottom:2px;">חשבונית אחרונה שנסרקה — לחץ לפתיחת Smart Basic 2</div>
-          <div id="last_inv_text" style="font-size:13px;font-weight:700;color:#fbbf24;">טוען...</div>
+          <div style="font-size:9px;color:#92400e;font-weight:600;margin-bottom:2px;text-transform:uppercase;letter-spacing:0.3px;">חשבונית אחרונה — לחץ לפתיחת Smart Basic 2</div>
+          <div id="last_inv_text" style="font-size:13px;font-weight:800;color:#b45309;">טוען...</div>
         </div>
+        <span style="font-size:16px;color:#d97706;">←</span>
       </div>
 
       <!-- Suppliers table -->
