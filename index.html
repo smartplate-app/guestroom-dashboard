@@ -171,6 +171,47 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 .refresh-btn:active { opacity:0.7; transform:scale(0.97); }
 .refresh-btn:disabled { opacity:0.5; cursor:not-allowed; }
 .last-sync { font-size:10px; color:#aaa; margin-top:6px; }
+
+/* ── SYNC ERROR POPUP ─────────────────────────────────── */
+#sync-error-popup {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 8888;
+  background: rgba(0,0,0,0.7);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+#sync-error-popup.show { display: flex; }
+.sep-box {
+  background: #160936;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 18px;
+  padding: 32px 28px;
+  max-width: 360px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.sep-icon { font-size: 48px; margin-bottom: 10px; }
+.sep-title { font-size: 18px; font-weight: 800; color: white; margin-bottom: 8px; }
+.sep-msg { font-size: 13px; color: rgba(255,255,255,0.55); margin-bottom: 24px; line-height: 1.6; }
+.sep-btn {
+  width: 100%; padding: 14px; border: none; border-radius: 12px;
+  background: linear-gradient(135deg,#4f1faa,#7c3aed);
+  color: white; font-size: 15px; font-weight: 800;
+  cursor: pointer; margin-bottom: 10px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: inherit;
+}
+.sep-btn:hover { opacity: 0.88; }
+.sep-dismiss {
+  background: none; border: none;
+  color: rgba(255,255,255,0.35); font-size: 12px;
+  cursor: pointer; padding: 4px; font-family: inherit;
+}
+.sep-dismiss:hover { color: rgba(255,255,255,0.65); }
 </style>
 </head>
 <body>
@@ -206,6 +247,20 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
       <div class="pw-ok" id="req-ok"></div>
       <div class="pw-err" id="req-err"></div>
     </div>
+  </div>
+</div>
+
+
+<!-- SYNC ERROR POPUP -->
+<div id="sync-error-popup">
+  <div class="sep-box">
+    <div class="sep-icon">⚠️</div>
+    <div class="sep-title">הנתונים לא עודכנו</div>
+    <div class="sep-msg" id="sep-msg">לא ניתן לטעון נתונים עדכניים.<br>לחץ על סנכרן כדי לנסות שוב.</div>
+    <button class="sep-btn" onclick="dismissPopupAndSync()">
+      <span>🔄</span> סנכרן עכשיו
+    </button>
+    <button class="sep-dismiss" onclick="dismissSyncPopup()">המשך בכל זאת</button>
   </div>
 </div>
 
@@ -520,6 +575,7 @@ async function loadDashboard() {
   } catch(e) {
     document.getElementById('loading').style.display = 'none';
     console.error('fetch error', e);
+    showSyncErrorPopup('שגיאת תקשורת עם השרת.<br>לחץ לסנכרון מחדש.');
   }
 }
 
@@ -707,6 +763,19 @@ async function syncNow() {
   await loadDashboard();
   btn.disabled = false;
   btn.innerHTML = '<span>🔄</span> סנכרן עכשיו';
+}
+
+function showSyncErrorPopup(msg) {
+  const popup = document.getElementById('sync-error-popup');
+  if (msg) document.getElementById('sep-msg').innerHTML = msg;
+  popup.classList.add('show');
+}
+function dismissSyncPopup() {
+  document.getElementById('sync-error-popup').classList.remove('show');
+}
+function dismissPopupAndSync() {
+  dismissSyncPopup();
+  syncNow();
 }
 </script>
 </body>
