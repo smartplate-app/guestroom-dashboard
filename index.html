@@ -696,7 +696,7 @@ function renderVendors(vendors, lastInvoice) {
     const net = v.net || v.amount || 0;
     const count = v.count || v.invoices || '';
     return `<div class="sup-box">
-      <div class="sl">${v.name || v.vendor_name || '—'}</div>
+      <div class="sl">${v.supplier_name || v.name || v.vendor_name || '—'}</div>
       <div class="sv">₪${Math.round(net).toLocaleString('he-IL')}</div>
       ${count ? `<div style="font-size:9px;color:#aaa;margin-top:3px">${count} חשב'</div>` : ''}
     </div>`;
