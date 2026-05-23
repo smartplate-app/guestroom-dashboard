@@ -150,11 +150,13 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 .cr .v { font-size:13px; font-weight:800; color:#0a0a2e; }
 .cr.d .v { color:white; font-size:15px; }
 
-/* ─── SUPPLIER TABLE ─── */
-.sup-grid { display:flex; flex-wrap:wrap; gap:7px; }
-.sup-box { background:#f8f9fa; border-radius:7px; padding:9px 12px; flex:1; min-width:110px; }
+/* ─── SUPPLIER GRID ─── */
+.sup-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:7px; }
+@media(max-width:480px){ .sup-grid { grid-template-columns: repeat(2, 1fr); gap:6px; } }
+.sup-box { background:#f8f9fa; border-radius:8px; padding:10px 12px; }
 .sup-box .sv { font-size:14px; font-weight:800; color:#0a2342; }
-.sup-box .sl { font-size:9px; color:#999; margin-bottom:3px; }
+.sup-box .sl { font-size:9px; color:#999; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.sup-box .sc { font-size:9px; color:#aaa; margin-top:3px; }
 
 /* ─── FOOTER ─── */
 .footer { text-align:center; font-size:10px; color:#ccc; padding:12px 0 20px; line-height:2; }
@@ -525,10 +527,10 @@ async function fetchVendors() {
     if (!res.ok) return { vendors: [], last_invoice: null, food_cost_net: 0 };
     const data = await res.json();
     const vendors = (data.vendors || []).map(v => ({
-      name: v.name,
+      name: v.supplier_name || v.name || v.vendor_name || '—',
       net: Math.round(v.net || 0),
       gross: Math.round(v.gross || 0),
-      count: v.count || 0,
+      count: v.invoice_count || v.count || 0,
       last_date: v.last_date || '',
       last_inv: v.last_inv || '',
       last_amount: Math.round(v.last_amount || 0)
@@ -696,9 +698,9 @@ function renderVendors(vendors, lastInvoice) {
     const net = v.net || v.amount || 0;
     const count = v.count || v.invoices || '';
     return `<div class="sup-box">
-      <div class="sl">${v.supplier_name || v.name || v.vendor_name || '—'}</div>
+      <div class="sl">${v.name || '—'}</div>
       <div class="sv">₪${Math.round(net).toLocaleString('he-IL')}</div>
-      ${count ? `<div style="font-size:9px;color:#aaa;margin-top:3px">${count} חשב'</div>` : ''}
+      ${count ? `<div class="sc">${count} חשב'</div>` : ''}
     </div>`;
   }).join('') + '</div>';
 
