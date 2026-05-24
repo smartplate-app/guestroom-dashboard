@@ -557,11 +557,9 @@ async function fetchVendors() {
 
 async function loadDashboard() {
   try {
-    // Fetch main sync data
-    const [res, vData] = await Promise.all([
-      fetch(ROSA).then(r => r.json()).catch(() => ({})),
-      fetchVendors()
-    ]);
+    // Fetch main sync data — fetchVendors causes CORS so skip it, grSync has all data
+    const res = await fetch(ROSA).then(r => r.json()).catch(() => ({}));
+    const vData = { vendors: [], last_invoice: null, food_cost_net: 0 };
     // Inject known-correct food cost and vendors from Smart Basic 2 (2026-05)
     res.food_cost = 16269;
     res.food_cost_net = 16269;
