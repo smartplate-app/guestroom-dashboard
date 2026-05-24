@@ -520,26 +520,73 @@ const fmtN = n => n == null ? '—' : Math.round(n).toLocaleString('he-IL');
 const SMARTBASIC2_APP_ID = '699c4d19592434b7f867b2c6';
 const GR_EMAIL = 'guestroom@smartplate.org';
 
-// Fetch food cost + vendors from Rosa grFoodCost (reads Smart Basic 2 server-side)
+// Fetch food cost + vendors directly from Smart Basic 2 (client-side, paginated)
 async function fetchVendors() {
   try {
-    const res = await fetch('https://rosa-6d8ebb9e.base44.app/functions/grFoodCost');
-    if (!res.ok) return { vendors: [], last_invoice: null, food_cost_net: 0 };
-    const data = await res.json();
-    const vendors = (data.vendors || []).map(v => ({
-      name: v.supplier_name || v.name || v.vendor_name || '—',
-      net: Math.round(v.net || 0),
-      gross: Math.round(v.gross || 0),
-      count: v.invoice_count || v.count || 0,
-      last_date: v.last_date || '',
-      last_inv: v.last_inv || '',
-      last_amount: Math.round(v.last_amount || 0)
-    }));
-    return {
-      vendors,
-      last_invoice: data.last_invoice || null,
-      food_cost_net: data.food_cost_net || 0
-    };
+    const SB2 = '699c4d19592434b7f867b2c6';
+    const EMAIL = 'guestroom@smartplate.org';
+    const now = new Date();
+    const month = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+
+    const allRecords = [];
+    let skip = 0;
+    let hasMore = true;
+    while (hasMore) {
+      const url = 'https://rosa-6d8ebb9e.base44.app/api/apps/' + SB2 + '/entities/SupplyReceipt/filter?skip=' + skip + '&limit=500';
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ created_by: EMAIL, is_refund: false })
+      });
+      if (!res.ok) break;
+      const data = await res.json();
+      const recs = Array.isArray(data) ? data : (data.records || []);
+      allRecords.push(...recs);
+      hasMore = data.has_more === true;
+      skip += 500;
+    }
+
+    let foodNet = 0, foodGross = 0;
+    const supMap = {};
+    const seen = new Set();
+    let latestDate = '';
+    let latestInvoice = null;
+
+    for (const r of allRecords) {
+      if (r.is_refund) continue;
+      const d = r.invoice_date || '';
+      if (!d.startsWith(month)) continue;
+      const gross = Number(r.invoice_total) || 0;
+      if (gross <= 0) continue;
+      const key = (r.supplier_name||'') + '||' + (r.invoice_number||'');
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const net = r.is_zero_vat ? gross : gross / 1.18;
+      foodNet += net;
+      foodGross += gross;
+      const sup = r.supplier_name || 'אחר';
+      if (!supMap[sup]) supMap[sup] = { net: 0, gross: 0, count: 0, last_date: '' };
+      supMap[sup].net += net;
+      supMap[sup].gross += gross;
+      supMap[sup].count += 1;
+      if (d > supMap[sup].last_date) supMap[sup].last_date = d;
+      if (d > latestDate) {
+        latestDate = d;
+        latestInvoice = { supplier: sup, invoice_number: r.invoice_number||'', date: d, amount: Math.round(net), amount_gross: Math.round(gross) };
+      }
+    }
+
+    const vendors = Object.entries(supMap)
+      .sort((a,b) => b[1].net - a[1].net)
+      .map(([name, v]) => ({
+        name,
+        net: Math.round(v.net),
+        gross: Math.round(v.gross),
+        count: v.count,
+        last_date: v.last_date
+      }));
+
+    return { vendors, last_invoice: latestInvoice, food_cost_net: Math.round(foodNet) };
   } catch(e) {
     console.warn('vendors fetch failed:', e);
     return { vendors: [], last_invoice: null, food_cost_net: 0 };
