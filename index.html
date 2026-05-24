@@ -588,13 +588,20 @@ async function fetchVendors() {
 }
 
 async function loadDashboard() {
+  // ═══════════════════════════════════════════════════════════
+  // ⚠️ RULE — GUEST ROOM DASHBOARD: ALWAYS LIVE ON EVERY LOAD
+  // Every page open fetches LIVE from all 3 sources in parallel.
+  // NO cache, NO localStorage for data, NO fallback to stale entity.
+  //
+  // 1. grBeePortSync (POST) → SALES  — closed Z-reports, minus tips
+  // 2. grSync        (GET)  → LABOR  — ShiftOrganizer (live attempt, entity fallback)
+  // 3. grFoodCost    (GET)  → FOOD   — Smart Basic 2, invoice_date = current month
+  //
+  // DO NOT add localStorage caching for financial data here.
+  // DO NOT fall back to grSync for food cost or vendors.
+  // DO NOT fall back to grSync for sales.
+  // ═══════════════════════════════════════════════════════════
   try {
-    // Fetch sales from grBeePortSync (LIVE — closed Z only, minus tips)
-    // Fetch labor+vendors from grSync (entity cache)
-    // 3 parallel live calls:
-    // 1. grBeePortSync — sales (closed Z only, minus tips)
-    // 2. grSync       — labor (ShiftOrganizer cache, fallback)
-    // 3. grFoodCost   — food cost + vendors LIVE from Smart Basic 2
     const [salesRes, syncRes, foodRes] = await Promise.all([
       fetch('https://rosa-6d8ebb9e.base44.app/functions/grBeePortSync', {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'}).then(r => r.json()).catch(() => ({})),
       fetch('https://rosa-6d8ebb9e.base44.app/functions/grSync').then(r => r.json()).catch(() => ({})),
@@ -603,30 +610,26 @@ async function loadDashboard() {
 
     const d = {};
 
-    // SALES — always from grBeePortSync (Z closed, minus tips)
-    d.sales_vat   = salesRes.sales_gross || 0;
-    d.sales_net   = salesRes.sales_net   || 0;
-    d.tips        = salesRes.tips        || syncRes.tips || 0;
-    d.diners      = salesRes.diners      || syncRes.diners || 0;
-    d.order_count = salesRes.order_count || syncRes.order_count || 0;
-    d.avg_per_diner = salesRes.avg_per_diner || syncRes.avg_per_diner || 0;
-    d.month       = salesRes.month       || syncRes.month || '';
+    // SALES — grBeePortSync only (closed Z, minus tips)
+    d.sales_vat     = salesRes.sales_gross  || 0;
+    d.sales_net     = salesRes.sales_net    || 0;
+    d.tips          = salesRes.tips         || 0;
+    d.diners        = salesRes.diners       || 0;
+    d.order_count   = salesRes.order_count  || 0;
+    d.avg_per_diner = salesRes.avg_per_diner|| 0;
+    d.month         = salesRes.month        || syncRes.month || '';
 
-    // LABOR — from grSync entity cache (ShiftOrganizer)
-    d.labor_cost  = syncRes.labor_cost   || 0;
-    d.labor_pct   = syncRes.labor_pct    || 0;
-    d.days_collected = syncRes.days_collected || 0;
+    // LABOR — grSync (ShiftOrganizer live attempt, entity fallback if SO blocked)
+    d.labor_cost     = syncRes.labor_cost    || 0;
+    d.labor_pct      = syncRes.labor_pct     || 0;
+    d.days_collected = syncRes.days_collected|| 0;
 
-    // FOOD COST + VENDORS — LIVE from grFoodCost (Smart Basic 2 direct)
-    const vendorsList = (foodRes.vendors && foodRes.vendors.length > 0)
-      ? foodRes.vendors
-      : (syncRes.vendors && syncRes.vendors.length > 0 ? syncRes.vendors : []);
-    const foodFromVendors = vendorsList.reduce(function(s,v){ return s + (v.amount||0); }, 0);
-    d.food_cost     = foodRes.food_cost || foodFromVendors || syncRes.food_cost || 0;
+    // FOOD COST + VENDORS — grFoodCost only (Smart Basic 2 live, invoice_date = current month)
+    d.food_cost     = foodRes.food_cost_net  || foodRes.food_cost || 0;
     d.food_cost_net = d.food_cost;
-    d.food_pct      = foodRes.food_pct  || syncRes.food_pct || 0;
-    d.vendors       = vendorsList;
-    d.last_invoice  = foodRes.last_invoice || syncRes.last_invoice || null;
+    d.food_pct      = 0; // recalculated in render()
+    d.vendors       = (foodRes.vendors && foodRes.vendors.length > 0) ? foodRes.vendors : [];
+    d.last_invoice  = foodRes.last_invoice   || null;
 
     render(d);
   } catch(e) {
@@ -637,13 +640,9 @@ async function loadDashboard() {
 }
 
 function render(d) {
-  // Sales come from entity cache (grSync reads GuestRoomMonthlyData entity)
-  // Sales come from entity (grOverride) — no hardcoded override
-  // Correct May 2026 value: ₪84,286 gross (from BeeComm "כללי סגור" report)
+  // ⚠️ All data here comes from live API calls — no overrides, no hardcoded values
   let salesVat = d.sales_vat || 0;
-  // If grSync returns stale/wrong value, use known-correct override
   const monthKey = d.month || '';
-  // No hardcoded sales override — entity is source of truth
   const salesNet  = salesVat / 1.18;
   const labor     = d.labor_cost  || 0;
   const foodNet   = d.food_cost_net || (salesNet * (d.food_pct || 0) / 100);
