@@ -565,11 +565,14 @@ async function loadDashboard() {
     d.days_collected = syncRes.days_collected || 0;
 
     // FOOD COST + VENDORS — from grSync entity cache
-    d.food_cost   = syncRes.food_cost    || 0;
-    d.food_cost_net = syncRes.food_cost  || 0;
-    d.food_pct    = syncRes.food_pct     || 0;
-    d.vendors     = (syncRes.vendors && syncRes.vendors.length > 0) ? syncRes.vendors : [];
-    d.last_invoice = syncRes.last_invoice || null;
+    // food_cost may be null in grSync — calculate from vendors array if needed
+    const vendorsList = (syncRes.vendors && syncRes.vendors.length > 0) ? syncRes.vendors : [];
+    const foodFromVendors = vendorsList.reduce(function(s,v){ return s + (v.amount||0); }, 0);
+    d.food_cost     = syncRes.food_cost || foodFromVendors || 0;
+    d.food_cost_net = syncRes.food_cost || foodFromVendors || 0;
+    d.food_pct      = syncRes.food_pct  || 0;
+    d.vendors       = vendorsList;
+    d.last_invoice  = syncRes.last_invoice || null;
 
     render(d);
   } catch(e) {
