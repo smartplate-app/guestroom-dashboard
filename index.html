@@ -540,56 +540,35 @@ async function fetchVendors() {
 
 async function loadDashboard() {
   try {
-    // Fetch main sync data — fetchVendors causes CORS so skip it, grSync has all data
-    const res = await fetch(ROSA).then(r => r.json()).catch(() => ({}));
-    const vData = { vendors: [], last_invoice: null, food_cost_net: 0 };
-    // Inject known-correct food cost and vendors from Smart Basic 2 (2026-05)
-    res.food_cost = 16269;
-    res.food_cost_net = 16269;
-    res.food_cost_gross = 18819;
-    res.food_cost_pct = 22.8;
-    res.vendors_data = JSON.stringify([
-      {"name": "טמפו שיווק משקאות", "amount": 4619, "amount_gross": 5450, "invoice_count": 3, "last_date": "2026-05-19"},
-      {"name": "הכרם משקאות חריפים", "amount": 4121, "amount_gross": 4863, "invoice_count": 3, "last_date": "2026-05-19"},
-      {"name": "עלה עלה", "amount": 2104, "amount_gross": 2103, "invoice_count": 9, "last_date": "2026-05-19"},
-      {"name": "עידן שלמה יח'צ", "amount": 1444, "amount_gross": 1704, "invoice_count": 2, "last_date": "2026-05-18"},
-      {"name": "איס דרים תעשיות", "amount": 1078, "amount_gross": 1272, "invoice_count": 1, "last_date": "2026-05-12"},
-      {"name": "זץ איבניר יזמות", "amount": 647, "amount_gross": 764, "invoice_count": 1, "last_date": "2026-05-18"},
-      {"name": "R&D אוליפנט", "amount": 556, "amount_gross": 656, "invoice_count": 1, "last_date": "2026-05-05"},
-      {"name": "אשראי", "amount": 544, "amount_gross": 642, "invoice_count": 3, "last_date": "2026-05-07"},
-      {"name": "ייקבי כרמל", "amount": 465, "amount_gross": 549, "invoice_count": 1, "last_date": "2026-05-04"},
-      {"name": "מרליז יבוא ושיווק", "amount": 294, "amount_gross": 347, "invoice_count": 1, "last_date": "2026-05-05"},
-      {"name": "פינת הגבינות והיין", "amount": 182, "amount_gross": 215, "invoice_count": 1, "last_date": "2026-05-07"},
-      {"name": "חבשוש אריה מזון", "amount": 131, "amount_gross": 154, "invoice_count": 1, "last_date": "2026-05-05"},
-      {"name": "ברלין", "amount": 45, "amount_gross": 53, "invoice_count": 3, "last_date": "2026-05-04"},
-      {"name": "מאפיית המוציא לחם", "amount": 38, "amount_gross": 45, "invoice_count": 1, "last_date": "2026-05-11"}
+    // Fetch sales from grBeePortSync (LIVE — closed Z only, minus tips)
+    // Fetch labor+vendors from grSync (entity cache)
+    const [salesRes, syncRes] = await Promise.all([
+      fetch('https://rosa-6d8ebb9e.base44.app/functions/grBeePortSync', {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'}).then(r => r.json()).catch(() => ({})),
+      fetch('https://rosa-6d8ebb9e.base44.app/functions/grSync').then(r => r.json()).catch(() => ({}))
     ]);
-    res.last_invoice_data = JSON.stringify({"supplier": "הכרם משקאות חריפים", "invoice_number": "I2600019510", "date": "2026-05-19", "amount": 1033, "amount_gross": 1219});
 
-    const d = res || {};
+    const d = {};
 
-    // vendors_data comes from grSync as JSON string (stored in GuestRoomMonthlyData entity)
-    let vendors = [];
-    if (d.vendors && d.vendors.length > 0) {
-      vendors = d.vendors;
-    } else if (d.vendors_data) {
-      try { vendors = JSON.parse(d.vendors_data); } catch(e) {}
-    } else if (vData.vendors && vData.vendors.length > 0) {
-      vendors = vData.vendors;
-    }
-    d.vendors = vendors;
+    // SALES — always from grBeePortSync (Z closed, minus tips)
+    d.sales_vat   = salesRes.sales_gross || 0;
+    d.sales_net   = salesRes.sales_net   || 0;
+    d.tips        = salesRes.tips        || syncRes.tips || 0;
+    d.diners      = salesRes.diners      || syncRes.diners || 0;
+    d.order_count = salesRes.order_count || syncRes.order_count || 0;
+    d.avg_per_diner = salesRes.avg_per_diner || syncRes.avg_per_diner || 0;
+    d.month       = salesRes.month       || syncRes.month || '';
 
-    const lastInv = d.last_invoice || (d.last_invoice_data ? (() => { try { return JSON.parse(d.last_invoice_data); } catch(e) { return null; } })() : null) || vData.last_invoice || null;
-    d.last_invoice = lastInv;
+    // LABOR — from grSync entity cache (ShiftOrganizer)
+    d.labor_cost  = syncRes.labor_cost   || 0;
+    d.labor_pct   = syncRes.labor_pct    || 0;
+    d.days_collected = syncRes.days_collected || 0;
 
-    // Override food_cost_net if available
-    if (vData.food_cost_net && vData.food_cost_net > 0) d.food_cost_net = vData.food_cost_net;
-    if (d.food_cost && !d.food_cost_net) d.food_cost_net = d.food_cost;
-
-    // Diners + orders from grSync (now fixed) or fallback
-    if (!d.diners) d.diners = 758;
-    if (!d.order_count) d.order_count = 412;
-    if (!d.avg_per_diner) d.avg_per_diner = 105;
+    // FOOD COST + VENDORS — from grSync entity cache
+    d.food_cost   = syncRes.food_cost    || 0;
+    d.food_cost_net = syncRes.food_cost  || 0;
+    d.food_pct    = syncRes.food_pct     || 0;
+    d.vendors     = (syncRes.vendors && syncRes.vendors.length > 0) ? syncRes.vendors : [];
+    d.last_invoice = syncRes.last_invoice || null;
 
     render(d);
   } catch(e) {
