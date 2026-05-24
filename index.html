@@ -408,21 +408,7 @@ function checkAccess() {
   return false;
 }
 
-function submitCode() {
-  const code = document.getElementById('access-code').value.trim().toUpperCase();
-  const err = document.getElementById('pw-err');
-  if (!code) { err.textContent = 'נא להזין קוד גישה'; return; }
-  if (VALID_CODES.includes(code)) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ granted: true, code, ts: Date.now() }));
-    document.getElementById('paywall').style.display = 'none';
-    document.getElementById('loading').style.display = 'flex';
-    loadDashboard();
-  } else {
-    err.textContent = '❌ קוד שגוי — פנה ל-admin@smartplate.org';
-    document.getElementById('access-code').style.borderColor = '#f87171';
-    setTimeout(() => { document.getElementById('access-code').style.borderColor = ''; }, 2000);
-  }
-}
+function submitCode() { loadDashboard(); }
 
 function showRequest() {
   document.getElementById('code-form').style.display = 'none';
@@ -462,10 +448,7 @@ async function submitRequest() {
   document.getElementById('req-email').value = '';
 }
 
-// ─── ENTER KEY ───
-document.getElementById('access-code').addEventListener('keydown', e => {
-  if (e.key === 'Enter') submitCode();
-});
+// ─── ENTER KEY ─── (paywall removed, no access-code element)
 
 // ─── ON LOAD ───
 window.onload = () => {
