@@ -10,60 +10,55 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 
 /* ─── PAYWALL ─── */
 #paywall {
-  position:fixed; inset:0; background:#f0f2f5;
+  position:fixed; inset:0; background:#0a0520;
   display:flex; align-items:center; justify-content:center;
-  z-index:9999; padding:20px;
+  z-index:99999; padding:20px;
 }
 .pw-box {
-  background:#ffffff; border:1px solid #e2e8f0;
-  border-radius:20px; padding:40px 32px; max-width:400px; width:100%;
-  text-align:center; box-shadow:0 8px 40px rgba(0,0,0,0.10);
+  background:#160936; border:1px solid rgba(255,255,255,0.1);
+  border-radius:20px; padding:36px 28px; max-width:400px; width:100%;
+  text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.5);
 }
-.pw-logo { font-size:40px; margin-bottom:10px; }
-.pw-title { font-size:24px; font-weight:800; color:#1a202c; margin-bottom:6px; }
-.pw-sub { font-size:13px; color:#718096; margin-bottom:28px; line-height:1.6; }
+.pw-logo { font-size:36px; margin-bottom:8px; }
+.pw-title { font-size:22px; font-weight:800; color:white; margin-bottom:6px; }
+.pw-sub { font-size:13px; color:rgba(255,255,255,0.45); margin-bottom:28px; line-height:1.6; }
 .pw-input {
-  width:100%; padding:14px 16px; border-radius:10px;
-  border:2px solid #e2e8f0; background:#f7fafc;
-  color:#1a202c; font-size:16px; text-align:center; letter-spacing:3px;
-  margin-bottom:14px; outline:none; font-family:inherit;
+  width:100%; padding:13px 16px; border-radius:10px;
+  border:1.5px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07);
+  color:white; font-size:15px; text-align:center; letter-spacing:2px;
+  margin-bottom:12px; outline:none; font-family:inherit;
   transition: border-color 0.2s;
-  -webkit-appearance:none;
 }
-.pw-input:focus { border-color:#7c3aed; background:#fff; }
-.pw-input::placeholder { letter-spacing:0; color:#a0aec0; font-size:13px; }
+.pw-input:focus { border-color:#8b5cf6; }
+.pw-input::placeholder { letter-spacing:0; color:rgba(255,255,255,0.3); font-size:13px; }
 .pw-btn {
-  width:100%; padding:14px; border-radius:10px; border:none;
+  width:100%; padding:13px; border-radius:10px; border:none;
   background:linear-gradient(135deg,#4f1faa,#7c3aed);
-  color:white; font-size:16px; font-weight:700; cursor:pointer;
+  color:white; font-size:15px; font-weight:700; cursor:pointer;
   margin-bottom:12px; transition:opacity 0.2s; font-family:inherit;
-  -webkit-appearance:none; box-shadow:0 4px 12px rgba(124,58,237,0.3);
 }
 .pw-btn:hover { opacity:0.88; }
-.pw-btn:active { opacity:0.75; transform:scale(0.99); }
-.pw-divider { color:#cbd5e0; font-size:11px; margin:10px 0; }
+.pw-divider { color:rgba(255,255,255,0.2); font-size:11px; margin:10px 0; }
 .pw-req-btn {
-  width:100%; padding:11px; border-radius:10px;
-  border:1.5px solid #e2e8f0; background:transparent;
-  color:#718096; font-size:12px; cursor:pointer;
+  width:100%; padding:10px; border-radius:10px;
+  border:1px solid rgba(255,255,255,0.15); background:transparent;
+  color:rgba(255,255,255,0.55); font-size:12px; cursor:pointer;
   transition:all 0.2s; font-family:inherit;
-  -webkit-appearance:none;
 }
-.pw-req-btn:hover { border-color:#7c3aed; color:#7c3aed; }
-.pw-err { color:#e53e3e; font-size:12px; margin-top:8px; min-height:18px; }
-.pw-ok  { color:#38a169; font-size:12px; margin-top:8px; min-height:18px; }
+.pw-req-btn:hover { border-color:rgba(255,255,255,0.35); color:rgba(255,255,255,0.8); }
+.pw-err { color:#f87171; font-size:12px; margin-top:8px; min-height:18px; }
+.pw-ok  { color:#34d399; font-size:12px; margin-top:8px; min-height:18px; }
 
 /* request form */
 #req-form { display:none; }
 .req-input {
-  width:100%; padding:12px 14px; border-radius:9px;
-  border:2px solid #e2e8f0; background:#f7fafc;
-  color:#1a202c; font-size:13px; margin-bottom:10px; outline:none; font-family:inherit;
+  width:100%; padding:11px 14px; border-radius:9px;
+  border:1.5px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07);
+  color:white; font-size:13px; margin-bottom:10px; outline:none; font-family:inherit;
   transition:border-color 0.2s; direction:ltr; text-align:left;
-  -webkit-appearance:none;
 }
-.req-input:focus { border-color:#7c3aed; background:#fff; }
-.req-input::placeholder { color:#a0aec0; }
+.req-input:focus { border-color:#8b5cf6; }
+.req-input::placeholder { color:rgba(255,255,255,0.3); }
 
 /* ─── LOADING ─── */
 .loading-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(240,242,245,0.95); z-index:200; display:flex; flex-direction:column; align-items:center; justify-content:center; }
@@ -231,7 +226,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 
     <!-- CODE ENTRY -->
     <div id="code-form">
-      <input class="pw-input" id="access-code" type="text" placeholder="הזן קוד גישה" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" />
+      <input class="pw-input" id="access-code" type="text" placeholder="הזן קוד גישה" autocomplete="off" />
       <button class="pw-btn" onclick="submitCode()">כניסה</button>
       <div class="pw-divider">— או —</div>
       <button class="pw-req-btn" onclick="showRequest()">אין לי קוד — בקש גישה</button>
@@ -240,8 +235,8 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 
     <!-- REQUEST FORM -->
     <div id="req-form">
-      <div style="color:#2d3748;font-size:13px;font-weight:600;margin-bottom:6px;">🔑 בקשת גישה לדשבורד</div>
-      <div style="color:#718096;font-size:11px;margin-bottom:14px;line-height:1.5;">
+      <div style="color:rgba(255,255,255,0.7);font-size:13px;font-weight:600;margin-bottom:6px;">🔑 בקשת גישה לדשבורד</div>
+      <div style="color:rgba(255,255,255,0.5);font-size:11px;margin-bottom:14px;line-height:1.5;">
         מלא פרטים ונשלח לך קוד גישה + חשבונית / קישור לתשלום
       </div>
       <input class="req-input" id="req-name" type="text" placeholder="שם מלא / עסק" />
@@ -427,7 +422,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 <script>
 const ROSA = 'https://rosa-6d8ebb9e.base44.app/functions/grSync';
 const NOTIFY = 'https://rosa-6d8ebb9e.base44.app/functions/grAccessRequest';
-const VALID_CODES = ['GSMART2026', 'Gsmart2026', 'gsmart2026'];
+const VALID_CODES = ['GSMART2026'];
 const STORAGE_KEY = 'gr_access_v1';
 
 // ─── PAYWALL LOGIC ───
