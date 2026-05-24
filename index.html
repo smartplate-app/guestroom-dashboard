@@ -226,7 +226,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 
     <!-- CODE ENTRY -->
     <div id="code-form">
-      <input class="pw-input" id="access-code" type="text" placeholder="הזן קוד גישה" autocomplete="off" />
+      <input class="pw-input" id="access-code" type="text" placeholder="הזן קוד גישה" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" />
       <button class="pw-btn" onclick="submitCode()">כניסה</button>
       <div class="pw-divider">— או —</div>
       <button class="pw-req-btn" onclick="showRequest()">אין לי קוד — בקש גישה</button>
@@ -422,7 +422,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 <script>
 const ROSA = 'https://rosa-6d8ebb9e.base44.app/functions/grSync';
 const NOTIFY = 'https://rosa-6d8ebb9e.base44.app/functions/grAccessRequest';
-const VALID_CODES = ['GSMART2026'];
+const VALID_CODES = ['GSMART2026', 'Gsmart2026', 'gsmart2026'];
 const STORAGE_KEY = 'gr_access_v1';
 
 // ─── PAYWALL LOGIC ───
