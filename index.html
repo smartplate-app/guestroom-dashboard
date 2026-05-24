@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Guest Room1779612721 — MTD Dashboard</title>
+<title>Guest Room — MTD Dashboard</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; direction:rtl; min-height:100vh; }
@@ -216,6 +216,30 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 </style>
 </head>
 <body>
+<div id="paywall" style="position:fixed;inset:0;background:#0a0520;display:flex;align-items:center;justify-content:center;z-index:99999;padding:20px;">
+  <div class="pw-box">
+    <div class="pw-logo">🏠</div>
+    <div class="pw-title">Guest Room Dashboard</div>
+    <div class="pw-sub">הזן קוד גישה להמשך</div>
+    <div id="code-form">
+      <input class="pw-input" id="access-code" type="password" placeholder="קוד גישה" maxlength="20"
+        onkeydown="if(event.key==='Enter'){submitCode();}" autocomplete="off" />
+      <button class="pw-btn" onclick="submitCode()">כניסה</button>
+      <div class="pw-err" id="code-err"></div>
+      <div class="pw-divider">— או —</div>
+      <button class="pw-req-btn" onclick="showRequest()">בקש גישה + חשבונית</button>
+    </div>
+    <div id="req-form" style="display:none;">
+      <input class="req-input" id="req-name" type="text" placeholder="שם מלא" />
+      <input class="req-input" id="req-email" type="email" placeholder="כתובת אימייל" dir="ltr" />
+      <button class="pw-btn" onclick="submitRequest()">שלח בקשה</button>
+      <div class="pw-err" id="req-err"></div>
+      <div class="pw-ok"  id="req-ok"></div>
+      <button class="pw-req-btn" style="margin-top:8px;" onclick="showCode()">← חזרה להזנת קוד</button>
+    </div>
+  </div>
+</div>
+
 
 <!-- v1779612774 -->
 <!-- SYNC ERROR POPUP -->
@@ -409,7 +433,21 @@ function checkAccess() {
   return false;
 }
 
-function submitCode() { loadDashboard(); }
+function submitCode() {
+  const input = document.getElementById('access-code');
+  const errEl = document.getElementById('code-err');
+  const code  = (input ? input.value : '').trim().toUpperCase();
+  if (!VALID_CODES.includes(code)) {
+    if (errEl) errEl.textContent = 'קוד שגוי, נסה שוב';
+    if (input) { input.value=''; input.focus(); }
+    return;
+  }
+  // Valid — save and open
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ granted: true, code: code, ts: Date.now() }));
+  document.getElementById('paywall').style.display = 'none';
+  document.getElementById('loading').style.display = 'flex';
+  loadDashboard();
+}
 
 function showRequest() {
   document.getElementById('code-form').style.display = 'none';
@@ -449,12 +487,22 @@ async function submitRequest() {
   document.getElementById('req-email').value = '';
 }
 
-// ─── ENTER KEY ─── (paywall removed, no access-code element)
+// ─── ENTER KEY handled by onkeydown on input ───
 
 // ─── ON LOAD ───
 window.onload = () => {
-  document.getElementById('loading').style.display = 'flex';
-  loadDashboard();
+  if (checkAccess()) {
+    document.getElementById('paywall').style.display = 'none';
+    document.getElementById('loading').style.display = 'flex';
+    loadDashboard();
+  } else {
+    document.getElementById('paywall').style.display = 'flex';
+    document.getElementById('loading').style.display = 'none';
+    setTimeout(() => {
+      const inp = document.getElementById('access-code');
+      if (inp) inp.focus();
+    }, 100);
+  }
 };
 
 // ─── FORMAT ───
