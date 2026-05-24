@@ -504,8 +504,13 @@ document.getElementById('access-code').addEventListener('keydown', e => {
 
 // ─── ON LOAD ───
 window.onload = () => {
+  // Always start with paywall visible
+  const paywall = document.getElementById('paywall');
+  paywall.style.display = 'flex';
+  paywall.style.zIndex = '99999';
+  // Only hide if valid access token exists
   if (checkAccess()) {
-    document.getElementById('paywall').style.display = 'none';
+    paywall.style.display = 'none';
     document.getElementById('loading').style.display = 'flex';
     loadDashboard();
   }
@@ -820,6 +825,9 @@ async function syncNow() {
 }
 
 function showSyncErrorPopup(msg) {
+  // Never show sync error if paywall is still visible
+  const paywall = document.getElementById('paywall');
+  if (paywall && paywall.style.display !== 'none') return;
   const popup = document.getElementById('sync-error-popup');
   if (msg) document.getElementById('sep-msg').innerHTML = msg;
   popup.classList.add('show');
