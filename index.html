@@ -218,35 +218,35 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 <body>
 
 <!-- ═══ PAYWALL OVERLAY ═══ -->
-<div id="paywall">
-  <div class="pw-box">
-    <div class="pw-logo">🏠</div>
-    <div class="pw-title">Guest Room MTD</div>
-    <div class="pw-sub">דשבורד תפעולי חי<br>נדרש קוד גישה</div>
-
-    <!-- CODE ENTRY -->
+<div id="paywall" style="position:fixed;inset:0;background:#f0f4f8;display:flex;align-items:center;justify-content:center;z-index:99999;padding:20px;">
+  <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:20px;padding:40px 32px;max-width:380px;width:100%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.12);">
+    <div style="font-size:40px;margin-bottom:10px;">🏠</div>
+    <div style="font-size:22px;font-weight:800;color:#1a202c;margin-bottom:6px;">Guest Room MTD</div>
+    <div style="font-size:13px;color:#718096;margin-bottom:28px;line-height:1.6;">דשבורד תפעולי חי<br>נדרש קוד גישה</div>
     <div id="code-form">
-      <input class="pw-input" id="access-code" type="text" placeholder="הזן קוד גישה" autocomplete="off" />
-      <button class="pw-btn" onclick="submitCode()">כניסה</button>
-      <div class="pw-divider">— או —</div>
-      <button class="pw-req-btn" onclick="showRequest()">אין לי קוד — בקש גישה</button>
-      <div class="pw-err" id="pw-err"></div>
+      <input id="access-code" type="text" placeholder="הזן קוד גישה"
+        style="width:100%;padding:14px 16px;border-radius:10px;border:2px solid #e2e8f0;background:#f7fafc;color:#1a202c;font-size:16px;text-align:center;letter-spacing:3px;margin-bottom:14px;outline:none;font-family:inherit;box-sizing:border-box;"
+        autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" />
+      <button type="button" onclick="submitCode()"
+        style="width:100%;padding:14px;border-radius:10px;border:none;background:linear-gradient(135deg,#4f1faa,#7c3aed);color:white;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:12px;font-family:inherit;box-sizing:border-box;">כניסה</button>
+      <div style="color:#cbd5e0;font-size:11px;margin:10px 0;">— או —</div>
+      <button type="button" onclick="showRequest()"
+        style="width:100%;padding:11px;border-radius:10px;border:1.5px solid #e2e8f0;background:transparent;color:#718096;font-size:12px;cursor:pointer;font-family:inherit;box-sizing:border-box;">אין לי קוד — בקש גישה</button>
+      <div id="pw-err" style="color:#e53e3e;font-size:12px;margin-top:8px;min-height:18px;"></div>
     </div>
-
-    <!-- REQUEST FORM -->
-    <div id="req-form">
-      <div style="color:rgba(255,255,255,0.7);font-size:13px;font-weight:600;margin-bottom:6px;">🔑 בקשת גישה לדשבורד</div>
-      <div style="color:rgba(255,255,255,0.5);font-size:11px;margin-bottom:14px;line-height:1.5;">
-        מלא פרטים ונשלח לך קוד גישה + חשבונית / קישור לתשלום
-      </div>
-      <input class="req-input" id="req-name" type="text" placeholder="שם מלא / עסק" />
-      <input class="req-input" id="req-email" type="email" placeholder="כתובת אימייל" dir="ltr" />
-      <button class="pw-btn" onclick="submitRequest()" style="background:linear-gradient(135deg,#f59e0b,#d97706);">
-        📧 שלח לי קוד וחשבונית לתשלום
-      </button>
-      <button class="pw-req-btn" onclick="showCode()" style="margin-top:8px;">יש לי קוד — חזור</button>
-      <div class="pw-ok" id="req-ok"></div>
-      <div class="pw-err" id="req-err"></div>
+    <div id="req-form" style="display:none;">
+      <div style="color:#2d3748;font-size:13px;font-weight:600;margin-bottom:6px;">🔑 בקשת גישה לדשבורד</div>
+      <div style="color:#718096;font-size:11px;margin-bottom:14px;line-height:1.5;">מלא פרטים ונשלח לך קוד גישה</div>
+      <input id="req-name" type="text" placeholder="שם מלא / עסק"
+        style="width:100%;padding:12px 14px;border-radius:9px;border:2px solid #e2e8f0;background:#f7fafc;color:#1a202c;font-size:13px;margin-bottom:10px;outline:none;font-family:inherit;box-sizing:border-box;" />
+      <input id="req-email" type="email" placeholder="כתובת אימייל" dir="ltr"
+        style="width:100%;padding:12px 14px;border-radius:9px;border:2px solid #e2e8f0;background:#f7fafc;color:#1a202c;font-size:13px;margin-bottom:10px;outline:none;font-family:inherit;box-sizing:border-box;" />
+      <button type="button" onclick="submitRequest()"
+        style="width:100%;padding:14px;border-radius:10px;border:none;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:10px;font-family:inherit;box-sizing:border-box;">📧 שלח לי קוד גישה</button>
+      <button type="button" onclick="showCode()"
+        style="width:100%;padding:11px;border-radius:10px;border:1.5px solid #e2e8f0;background:transparent;color:#718096;font-size:12px;cursor:pointer;font-family:inherit;box-sizing:border-box;">יש לי קוד — חזור</button>
+      <div id="req-ok" style="color:#38a169;font-size:12px;margin-top:8px;min-height:18px;"></div>
+      <div id="req-err" style="color:#e53e3e;font-size:12px;margin-top:8px;min-height:18px;"></div>
     </div>
   </div>
 </div>
