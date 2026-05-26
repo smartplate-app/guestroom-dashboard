@@ -769,33 +769,51 @@ function renderVendors(vendors, lastInvoice) {
   }
 }
 
+const GR_TRIGGER_URL = 'https://rosa-6d8ebb9e.base44.app/api/functions/grTriggerSync';
+let _grSyncPolling = null;
+let _grLastSalesVat = null;
+
 async function syncNow() {
   const btn = document.getElementById('syncBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<span>⏳</span> מושך מ-BeePort...';
-  document.getElementById('loading').style.display = 'flex';
-  const lt = document.querySelector('.loading-text');
-  if (lt) lt.textContent = 'מסנכרן עם BeePort POS...';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳</span> מסנכרן...'; }
 
+  // Capture current sales to detect change
   try {
-    const syncRes = await fetch('https://rosa-6d8ebb9e.base44.app/functions/grBeePortSync', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({})
-    });
-    const syncData = await syncRes.json();
-    if (syncData.ok && lt) {
-      lt.textContent = '✅ ' + syncData.z_count + ' Z-reports · ' + (syncData.diners||0) + ' סועדים';
-      await new Promise(r => setTimeout(r, 900));
-    }
-  } catch(e) {
-    console.warn('BeePort sync error:', e);
-  }
+    const cur = await fetch('https://rosa-6d8ebb9e.base44.app/functions/grBeePortSync', {method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).then(r=>r.json()).catch(()=>({}));
+    _grLastSalesVat = cur.sales_gross || null;
+  } catch(_) {}
 
-  if (lt) lt.textContent = 'טוען נתונים...';
-  await loadDashboard();
-  btn.disabled = false;
-  btn.innerHTML = '<span>🔄</span> סנכרן עכשיו';
+  // Trigger agent
+  try {
+    await fetch(GR_TRIGGER_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, cache: 'no-store' });
+  } catch(_) {}
+
+  // Show status
+  const lt = document.querySelector('.loading-text');
+  if (lt) lt.textContent = '⏳ מסנכרן נתוני Guest Room... (~30 שניות)';
+
+  // Poll every 8 seconds, up to 3 minutes
+  if (_grSyncPolling) clearInterval(_grSyncPolling);
+  let attempts = 0;
+  _grSyncPolling = setInterval(async () => {
+    attempts++;
+    try {
+      const fresh = await fetch('https://rosa-6d8ebb9e.base44.app/functions/grBeePortSync', {method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).then(r=>r.json()).catch(()=>({}));
+      if (fresh.sales_gross && fresh.sales_gross !== _grLastSalesVat) {
+        clearInterval(_grSyncPolling);
+        _grSyncPolling = null;
+        if (btn) { btn.disabled = false; btn.innerHTML = '<span>🔄</span> סנכרן עכשיו'; }
+        if (lt) lt.textContent = '';
+        await loadDashboard();
+        return;
+      }
+    } catch(_) {}
+    if (attempts >= 22) {
+      clearInterval(_grSyncPolling);
+      if (btn) { btn.disabled = false; btn.innerHTML = '<span>🔄</span> סנכרן עכשיו'; }
+      if (lt) lt.textContent = 'הסנכרון לוקח יותר מהצפוי — נסה שוב בעוד דקה.';
+    }
+  }, 8000);
 }
 
 function showSyncErrorPopup(msg) {
