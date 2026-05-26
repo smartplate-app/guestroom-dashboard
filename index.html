@@ -590,10 +590,11 @@ async function loadDashboard() {
   // DO NOT fall back to grSync for sales.
   // ═══════════════════════════════════════════════════════════
   try {
+    const withTimeout = (promise, ms) => Promise.race([promise, new Promise(r => setTimeout(() => r({}), ms))]);
     const [salesRes, syncRes, foodRes] = await Promise.all([
-      fetch('https://rosa-6d8ebb9e.base44.app/functions/grBeePortSync', {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'}).then(r => r.json()).catch(() => ({})),
-      fetch('https://rosa-6d8ebb9e.base44.app/functions/grSync').then(r => r.json()).catch(() => ({})),
-      fetch('https://rosa-6d8ebb9e.base44.app/functions/grFoodCost').then(r => r.json()).catch(() => ({}))
+      withTimeout(fetch('https://rosa-6d8ebb9e.base44.app/functions/grBeePortSync', {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'}).then(r => r.json()).catch(() => ({})), 8000),
+      withTimeout(fetch('https://rosa-6d8ebb9e.base44.app/functions/grSync').then(r => r.json()).catch(() => ({})), 8000),
+      withTimeout(fetch('https://rosa-6d8ebb9e.base44.app/functions/grFoodCost').then(r => r.json()).catch(() => ({})), 8000)
     ]);
 
     const d = {};
