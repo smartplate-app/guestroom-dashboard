@@ -493,18 +493,9 @@ async function submitRequest() {
 
 // ─── ON LOAD ───
 window.onload = () => {
-  if (checkAccess()) {
-    document.getElementById('paywall').style.display = 'none';
-    document.getElementById('loading').style.display = 'flex';
-    loadDashboard();
-  } else {
-    document.getElementById('paywall').style.display = 'flex';
-    document.getElementById('loading').style.display = 'none';
-    setTimeout(() => {
-      const inp = document.getElementById('access-code');
-      if (inp) inp.focus();
-    }, 100);
-  }
+  const pw = document.getElementById('paywall');
+  if (pw) pw.style.display = 'none';
+  loadDashboard();
 };
 
 // ─── FORMAT ───
