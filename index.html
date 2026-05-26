@@ -752,7 +752,7 @@ function renderVendors(vendors, lastInvoice) {
 
   grid.innerHTML = '<div class="sup-grid">' + vendors.map(v => {
     const net = v.net || v.amount || 0;
-    const count = v.count || v.invoices || '';
+    const count = v.invoice_count || v.count || v.invoices || '';
     return `<div class="sup-box">
       <div class="sl">${v.name || '—'}</div>
       <div class="sv">₪${Math.round(net).toLocaleString('he-IL')}</div>
