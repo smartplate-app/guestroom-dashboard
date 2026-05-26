@@ -491,12 +491,7 @@ async function submitRequest() {
 
 // ─── ENTER KEY handled by onkeydown on input ───
 
-// ─── ON LOAD ───
-window.onload = () => {
-  const pw = document.getElementById('paywall');
-  if (pw) pw.style.display = 'none';
-  loadDashboard();
-};
+
 
 // ─── FORMAT ───
 const fmt  = n => n == null ? '—' : '₪' + Math.round(n).toLocaleString('he-IL');
@@ -824,6 +819,7 @@ function dismissPopupAndSync() {
   dismissSyncPopup();
   syncNow();
 }
+loadDashboard();
 </script>
 </body>
 </html>
