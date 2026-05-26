@@ -424,12 +424,14 @@ function getDeviceId() {
 
 function checkAccess() {
   const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    try {
-      const d = JSON.parse(saved);
-      if (d.granted && d.code) return true;
-    } catch(e) {}
-  }
+  if (!saved) return false;
+  // Accept plain string code
+  if (VALID_CODES.includes(saved)) return true;
+  // Accept JSON format
+  try {
+    const d = JSON.parse(saved);
+    if (d.granted && d.code) return true;
+  } catch(e) {}
   return false;
 }
 
