@@ -623,7 +623,7 @@ async function loadDashboard() {
     const [salesRes, syncRes, foodRes] = await Promise.all([
       withTimeout(fetch('https://rosa-6d8ebb9e.base44.app/functions/grBeePortSync', {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'}).then(r => r.json()).catch(() => ({})), 8000),
       withTimeout(fetch('https://rosa-6d8ebb9e.base44.app/functions/grSync').then(r => r.json()).catch(() => ({})), 8000),
-      withTimeout(fetch('https://rosa-6d8ebb9e.base44.app/functions/grFoodCost').then(r => r.json()).catch(() => ({})), 8000)
+      fetchVendors()  // ← reads Smart Basic 2 directly, always live
     ]);
 
     const d = {};
@@ -643,11 +643,12 @@ async function loadDashboard() {
     d.days_collected = syncRes.days_collected|| 0;
 
     // FOOD COST + VENDORS — grFoodCost only (Smart Basic 2 live, invoice_date = current month)
-    d.food_cost     = foodRes.food_cost_net  || foodRes.food_cost || 0;
+    // fetchVendors() returns: { food_cost_net, vendors, last_invoice } — direct from Smart Basic 2
+    d.food_cost     = foodRes.food_cost_net || 0;
     d.food_cost_net = d.food_cost;
     d.food_pct      = 0; // recalculated in render()
     d.vendors       = (foodRes.vendors && foodRes.vendors.length > 0) ? foodRes.vendors : [];
-    d.last_invoice  = foodRes.last_invoice   || null;
+    d.last_invoice  = foodRes.last_invoice || null;
 
     render(d);
   } catch(e) {
