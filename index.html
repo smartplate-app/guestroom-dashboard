@@ -629,14 +629,14 @@ async function loadDashboard() {
 
     const d = {};
 
-    // SALES — grBeePortSync only (closed Z, minus tips)
-    d.sales_vat     = salesRes.sales_gross  || 0;
-    d.sales_net     = salesRes.sales_net    || 0;
-    d.tips          = salesRes.tips         || 0;
-    d.diners        = salesRes.diners       || 0;
-    d.order_count   = salesRes.order_count  || 0;
-    d.avg_per_diner = salesRes.avg_per_diner|| 0;
-    d.month         = salesRes.month        || syncRes.month || '';
+    // SALES — grBeePortSync first, fallback to grSync entity cache
+    d.sales_vat     = salesRes.sales_gross   || syncRes.sales_vat  || 0;
+    d.sales_net     = salesRes.sales_net     || syncRes.sales_net  || 0;
+    d.tips          = salesRes.tips          || syncRes.tips       || 0;
+    d.diners        = salesRes.diners        || 0;
+    d.order_count   = salesRes.order_count   || 0;
+    d.avg_per_diner = salesRes.avg_per_diner || 0;
+    d.month         = salesRes.month         || syncRes.month      || '';
 
     // LABOR — grSync (ShiftOrganizer live attempt, entity fallback if SO blocked)
     d.labor_cost     = syncRes.labor_cost    || 0;
