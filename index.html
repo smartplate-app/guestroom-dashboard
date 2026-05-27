@@ -213,6 +213,20 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
   cursor: pointer; padding: 4px; font-family: inherit;
 }
 .sep-dismiss:hover { color: rgba(255,255,255,0.65); }
+
+/* ─── INVOICE LIST ─── */
+.inv-table { width:100%; border-collapse:collapse; font-size:11px; }
+.inv-table th { font-size:9px; color:#aaa; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; padding:5px 8px; border-bottom:1.5px solid #eee; text-align:right; }
+.inv-table td { padding:7px 8px; border-bottom:1px solid #f3f4f6; color:#333; vertical-align:middle; }
+.inv-table tr:last-child td { border-bottom:none; }
+.inv-table tr:hover td { background:#fafafa; }
+.inv-amt { font-weight:700; color:#0a2342; }
+.inv-date { color:#888; direction:ltr; text-align:left; white-space:nowrap; }
+.inv-sup { color:#555; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.inv-num { color:#bbb; font-size:9px; }
+.inv-toggle { font-size:10px; color:#6d28d9; cursor:pointer; display:inline-block; margin-top:6px; user-select:none; }
+.inv-toggle:hover { text-decoration:underline; }
+
 </style>
 </head>
 <body>
@@ -395,6 +409,15 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
 
       <!-- Suppliers table -->
       <div id="vendors_grid"></div>
+      <span id="inv-list-toggle" class="inv-toggle" onclick="toggleInvList()" style="display:none;">▼ הצג את כל החשבוניות</span>
+      <div id="inv-list-wrap" style="display:none;margin-top:10px;max-height:320px;overflow-y:auto;">
+        <table class="inv-table">
+          <thead><tr>
+            <th>תאריך</th><th>ספק</th><th>מס׳ חשבונית</th><th>נטו</th><th>ברוטו</th>
+          </tr></thead>
+          <tbody id="inv-list-body"></tbody>
+        </table>
+      </div>
       <div id="sup-total" style="font-size:11px;color:#666;margin-top:8px;text-align:right;"></div>
     </div>
   </div>
@@ -568,6 +591,12 @@ async function fetchVendors() {
         last_date: v.last_date
       }));
 
+    window._grAllInvoices = allRecords.filter(r => {
+      const d = r.invoice_date || '';
+      const now2 = new Date();
+      const month2 = now2.getFullYear() + '-' + String(now2.getMonth()+1).padStart(2,'0');
+      return d.startsWith(month2) && !r.is_refund && (Number(r.invoice_total)||0) > 0;
+    }).sort((a,b) => (b.invoice_date||'').localeCompare(a.invoice_date||''));
     return { vendors, last_invoice: latestInvoice, food_cost_net: Math.round(foodNet) };
   } catch(e) {
     console.warn('vendors fetch failed:', e);
@@ -742,10 +771,14 @@ function renderVendors(vendors, lastInvoice) {
   grid.innerHTML = '<div class="sup-grid">' + vendors.map(v => {
     const net = v.net || v.amount || 0;
     const count = v.invoice_count || v.count || v.invoices || '';
+    const lastD = v.last_date ? v.last_date.substring(5).split('-').reverse().join('/') : '';
     return `<div class="sup-box">
       <div class="sl">${v.name || '—'}</div>
       <div class="sv">₪${Math.round(net).toLocaleString('he-IL')}</div>
-      ${count ? `<div class="sc">${count} חשב'</div>` : ''}
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px;">
+        ${count ? `<span class="sc">${count} חשב'</span>` : '<span></span>'}
+        ${lastD ? `<span style="font-size:8px;color:#bbb;">${lastD}</span>` : ''}
+      </div>
     </div>`;
   }).join('') + '</div>';
 
@@ -756,6 +789,38 @@ function renderVendors(vendors, lastInvoice) {
   if (supTotalEl) {
     supTotalEl.innerHTML = `סה"כ כולל מע"מ: <strong style="color:#0a2342">₪${Math.round(totalGross).toLocaleString('he-IL')}</strong> &nbsp;·&nbsp; נטו ללא מע"מ: <strong style="color:#ef4444">₪${Math.round(totalNet).toLocaleString('he-IL')}</strong>`;
   }
+  renderInvoiceList();
+}
+
+function renderInvoiceList() {
+  const toggle = document.getElementById('inv-list-toggle');
+  const tbody = document.getElementById('inv-list-body');
+  const invs = window._grAllInvoices || [];
+  if (!toggle || !tbody || invs.length === 0) return;
+  toggle.style.display = 'inline-block';
+  toggle.textContent = '▼ הצג את כל החשבוניות (' + invs.length + ')';
+  tbody.innerHTML = invs.map(r => {
+    const gross = Number(r.invoice_total) || 0;
+    const net = r.is_zero_vat ? gross : gross / 1.18;
+    const d = (r.invoice_date||'').substring(5).split('-').reverse().join('/');
+    return `<tr>
+      <td class="inv-date">${d}</td>
+      <td class="inv-sup">${r.supplier_name||'—'}</td>
+      <td class="inv-num">${r.invoice_number||'—'}</td>
+      <td class="inv-amt">₪${Math.round(net).toLocaleString('he-IL')}</td>
+      <td style="color:#888;font-size:10px;">₪${Math.round(gross).toLocaleString('he-IL')}</td>
+    </tr>`;
+  }).join('');
+}
+
+function toggleInvList() {
+  const wrap = document.getElementById('inv-list-wrap');
+  const toggle = document.getElementById('inv-list-toggle');
+  const invs = window._grAllInvoices || [];
+  if (!wrap) return;
+  const open = wrap.style.display !== 'none';
+  wrap.style.display = open ? 'none' : 'block';
+  toggle.textContent = (open ? '▼ הצג את כל החשבוניות' : '▲ הסתר חשבוניות') + ' (' + invs.length + ')';
 }
 
 const GR_TRIGGER_URL = 'https://rosa-6d8ebb9e.base44.app/api/functions/grTriggerSync';
