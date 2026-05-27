@@ -620,11 +620,12 @@ async function loadDashboard() {
   // ═══════════════════════════════════════════════════════════
   try {
     const withTimeout = (promise, ms) => Promise.race([promise, new Promise(r => setTimeout(() => r({}), ms))]);
-    const [salesRes, syncRes, foodRes] = await Promise.all([
+    const [salesRes, syncRes] = await Promise.all([
       withTimeout(fetch('https://rosa-6d8ebb9e.base44.app/functions/grBeePortSync', {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'}).then(r => r.json()).catch(() => ({})), 8000),
-      withTimeout(fetch('https://rosa-6d8ebb9e.base44.app/functions/grSync').then(r => r.json()).catch(() => ({})), 8000),
-      fetchVendors()  // ← reads Smart Basic 2 directly, always live
+      withTimeout(fetch('https://rosa-6d8ebb9e.base44.app/functions/grSync').then(r => r.json()).catch(() => ({})), 8000)
     ]);
+    // Food cost + vendors come from grSync (which reads entity cache populated by automations)
+    const foodRes = { food_cost_net: syncRes.food_cost || 0, vendors: syncRes.vendors || [], last_invoice: syncRes.last_invoice || null };
 
     const d = {};
 
