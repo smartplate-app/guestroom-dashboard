@@ -376,6 +376,10 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; di
         <div><div class="l">ממוצע לסועד</div><div class="src">BeePort POS</div></div>
         <span class="v" id="cr_ppa">—</span>
       </div>
+      <div class="cr c">
+        <div><div class="l">מכירות לשעה (נטו)</div><div class="src">BeePort POS</div></div>
+        <span class="v" id="cr_sph">—</span>
+      </div>
       <div class="cr p">
         <div><div class="l">עלות שכר</div><div class="src">ShiftOrganizer</div></div>
         <span class="v" id="cr_labor">—</span>
@@ -632,7 +636,7 @@ async function loadDashboard() {
     // SALES — grBeePortSync first, fallback to grSync entity cache
     d.sales_vat     = salesRes.sales_gross   || syncRes.sales_vat  || 0;
     d.sales_net     = salesRes.sales_net     || syncRes.sales_net  || 0;
-    d.tips          = salesRes.tips          || syncRes.tips       || 0;
+    d.tips          = syncRes.tips       || 0;  // ⚠️ TIPS: ShiftOrganizer ONLY (NOT BeePort/BeeComm)
     d.diners        = salesRes.diners        || 0;
     d.order_count   = salesRes.order_count   || 0;
     d.avg_per_diner = salesRes.avg_per_diner || 0;
@@ -675,7 +679,8 @@ function render(d) {
   const days      = d.days_collected || 0;
   const diners    = d.diners || 0;
   const orders    = d.order_count || 0;
-  const ppa       = diners > 0 ? salesVat / diners : (d.avg_per_diner || 0);
+  const ppa           = d.avg_per_diner || (diners > 0 ? Math.round(salesNet / diners) : 0);
+  const salesPerHour  = d.sales_per_hour || 0;
   const daysLeft  = 31 - days;
   const dailyAvg  = days > 0 ? salesNet / days : 0;
   const forecast  = dailyAvg * 31;
