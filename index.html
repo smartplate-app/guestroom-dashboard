@@ -6,893 +6,580 @@
 <title>Guest Room — MTD Dashboard</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family: system-ui, -apple-system, sans-serif; background:#f0f2f5; direction:rtl; min-height:100vh; }
+body { font-family: system-ui, -apple-system, sans-serif; background:#0d0d1a; color:white; direction:rtl; min-height:100vh; }
 
-/* ─── PAYWALL ─── */
+/* ── PAYWALL ── */
 #paywall {
-  position:fixed; inset:0; background:#0a0520;
+  position:fixed; inset:0; background:#0d0d1a;
   display:flex; align-items:center; justify-content:center;
   z-index:99999; padding:20px;
 }
 .pw-box {
-  background:#160936; border:1px solid rgba(255,255,255,0.1);
-  border-radius:20px; padding:36px 28px; max-width:400px; width:100%;
-  text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.5);
+  background:#16162a; border:1px solid rgba(255,255,255,0.1);
+  border-radius:20px; padding:36px 28px; max-width:380px; width:100%;
+  text-align:center;
 }
-.pw-logo { font-size:36px; margin-bottom:8px; }
+.pw-logo { font-size:40px; margin-bottom:10px; }
 .pw-title { font-size:22px; font-weight:800; color:white; margin-bottom:6px; }
-.pw-sub { font-size:13px; color:rgba(255,255,255,0.45); margin-bottom:28px; line-height:1.6; }
+.pw-sub { font-size:13px; color:rgba(255,255,255,0.4); margin-bottom:28px; line-height:1.6; }
 .pw-input {
   width:100%; padding:13px 16px; border-radius:10px;
   border:1.5px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07);
-  color:white; font-size:15px; text-align:center; letter-spacing:2px;
+  color:white; font-size:16px; text-align:center; letter-spacing:3px;
   margin-bottom:12px; outline:none; font-family:inherit;
-  transition: border-color 0.2s;
 }
-.pw-input:focus { border-color:#8b5cf6; }
-.pw-input::placeholder { letter-spacing:0; color:rgba(255,255,255,0.3); font-size:13px; }
+.pw-input:focus { border-color:#6d28d9; }
 .pw-btn {
   width:100%; padding:13px; border-radius:10px; border:none;
   background:linear-gradient(135deg,#4f1faa,#7c3aed);
-  color:white; font-size:15px; font-weight:700; cursor:pointer;
-  margin-bottom:12px; transition:opacity 0.2s; font-family:inherit;
+  color:white; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit;
 }
-.pw-btn:hover { opacity:0.88; }
-.pw-divider { color:rgba(255,255,255,0.2); font-size:11px; margin:10px 0; }
-.pw-req-btn {
-  width:100%; padding:10px; border-radius:10px;
-  border:1px solid rgba(255,255,255,0.15); background:transparent;
-  color:rgba(255,255,255,0.55); font-size:12px; cursor:pointer;
-  transition:all 0.2s; font-family:inherit;
-}
-.pw-req-btn:hover { border-color:rgba(255,255,255,0.35); color:rgba(255,255,255,0.8); }
-.pw-err { color:#f87171; font-size:12px; margin-top:8px; min-height:18px; }
-.pw-ok  { color:#34d399; font-size:12px; margin-top:8px; min-height:18px; }
+.pw-err { color:#f87171; font-size:12px; margin-top:10px; min-height:18px; }
 
-/* request form */
-#req-form { display:none; }
-.req-input {
-  width:100%; padding:11px 14px; border-radius:9px;
-  border:1.5px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07);
-  color:white; font-size:13px; margin-bottom:10px; outline:none; font-family:inherit;
-  transition:border-color 0.2s; direction:ltr; text-align:left;
+/* ── LOADING ── */
+#loading {
+  position:fixed; inset:0; background:#0d0d1a;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  z-index:9999;
 }
-.req-input:focus { border-color:#8b5cf6; }
-.req-input::placeholder { color:rgba(255,255,255,0.3); }
-
-/* ─── LOADING ─── */
-.loading-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(240,242,245,0.95); z-index:200; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-.spin { width:32px; height:32px; border:3px solid #e2e8f0; border-top-color:#3d1a7a; border-radius:50%; animation:spin 0.8s linear infinite; margin-bottom:14px; }
+.spin { width:36px; height:36px; border:3px solid rgba(255,255,255,0.1); border-top-color:#7c3aed; border-radius:50%; animation:spin 0.8s linear infinite; margin-bottom:14px; }
 @keyframes spin { to { transform:rotate(360deg); } }
-.loading-text { color:#555; font-size:14px; }
+.loading-text { color:rgba(255,255,255,0.4); font-size:13px; }
 
-/* ─── HEADER ─── */
+/* ── HEADER ── */
 .header {
-  background:linear-gradient(135deg,#1a0a42 0%,#3d1a7a 100%);
-  color:white; padding:14px 16px;
+  background:#16162a; border-bottom:1px solid rgba(255,255,255,0.07);
+  padding:14px 16px;
   display:flex; align-items:center; justify-content:space-between;
-  box-shadow:0 3px 14px rgba(0,0,0,0.3);
   position:sticky; top:0; z-index:100;
 }
-.h-title { font-size:18px; font-weight:800; }
-.h-sub { font-size:9px; opacity:0.45; margin-top:2px; }
-.h-right { text-align:center; }
-.h-badge { background:rgba(255,255,255,0.13); border:1px solid rgba(255,255,255,0.22); border-radius:18px; padding:4px 12px; font-size:11px; font-weight:700; }
-.h-date { font-size:9px; opacity:0.45; margin-top:3px; }
-
-/* ─── LAYOUT ─── */
-.container { max-width:700px; margin:0 auto; padding:14px 12px; }
-
-/* KPI grid — 2x2 on mobile, 4 on wide */
-.kpi-row { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-bottom:10px; }
-@media(min-width:600px){ .kpi-row { grid-template-columns: repeat(4,1fr); } }
-
-.kpi {
-  background:white; border-radius:12px; padding:13px 14px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.07); border-top:3px solid #ddd;
+.h-logo { font-size:22px; font-weight:900; color:white; }
+.h-logo span { color:#a78bfa; }
+.h-month { font-size:12px; color:rgba(255,255,255,0.4); margin-top:2px; }
+.sync-btn {
+  background:#6d28d9; border:none; color:white;
+  padding:8px 16px; border-radius:20px; font-size:12px; font-weight:700;
+  cursor:pointer; font-family:inherit; display:flex; align-items:center; gap:6px;
 }
-.kpi.k-sales  { border-top-color:#3d1a7a; }
-.kpi.k-net    { border-top-color:#6d28d9; }
-.kpi.k-diners { border-top-color:#06b6d4; }
-.kpi.k-labor  { border-top-color:#ec4899; }
-.kpi.k-food   { border-top-color:#f59e0b; }
-.kpi.k-orders { border-top-color:#10b981; }
-.kpi.k-fore   { border-top-color:#0891b2; }
-.kpi.k-tips   { border-top-color:#8b5cf6; }
-.kpi-lbl { font-size:8px; color:#aaa; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:4px; }
-.kpi-val { font-size:21px; font-weight:800; color:#0a0a2e; line-height:1.1; }
-.kpi-sub { font-size:9px; color:#bbb; margin-top:2px; }
-.badge { display:inline-block; padding:2px 7px; border-radius:9px; font-size:9px; font-weight:700; margin-top:4px; }
-.bg { background:#e8f5e9; color:#2e7d32; }
-.br { background:#fce4ec; color:#c62828; }
-.bb { background:#e3f2fd; color:#1565c0; }
-.bp { background:#f3e8ff; color:#6d28d9; }
-.by { background:#fff8e1; color:#e65100; }
-.bc { background:#e0f7fa; color:#00838f; }
-.bar { background:#eee; border-radius:4px; height:5px; margin-top:6px; overflow:hidden; }
-.bf { height:100%; border-radius:4px; transition:width 0.8s ease; }
+.sync-btn:disabled { opacity:0.5; cursor:not-allowed; }
 
-/* ─── HERO CARD ─── */
+/* ── CONTAINER ── */
+.container { max-width:700px; margin:0 auto; padding:14px 12px 40px; }
+
+/* ── HERO ── */
 .hero {
-  border-radius:14px; padding:16px 18px; color:white; margin-bottom:10px;
+  border-radius:16px; padding:20px; margin-bottom:12px;
   display:flex; align-items:center; justify-content:space-between;
 }
-.hero.green  { background:linear-gradient(135deg,#166534,#16a34a); }
-.hero.yellow { background:linear-gradient(135deg,#92400e,#d97706); }
+.hero.green  { background:linear-gradient(135deg,#064e3b,#059669); }
+.hero.orange { background:linear-gradient(135deg,#78350f,#d97706); }
 .hero.red    { background:linear-gradient(135deg,#7f1d1d,#dc2626); }
-.hero .big { font-size:32px; font-weight:800; }
-.hero .sm  { font-size:9px; opacity:0.7; margin-top:2px; }
-.pill { display:inline-block; border-radius:16px; padding:3px 10px; font-size:11px; font-weight:700; margin-top:5px; }
-.pr { background:rgba(255,255,255,0.25); color:white; }
+.hero .big { font-size:38px; font-weight:900; line-height:1; }
+.hero .lbl { font-size:11px; opacity:0.65; margin-bottom:4px; }
+.hero .sub { font-size:11px; opacity:0.6; margin-top:6px; }
+.hero .target { font-size:11px; background:rgba(255,255,255,0.2); border-radius:12px; padding:3px 10px; display:inline-block; margin-top:8px; }
 
-/* ─── SECTION ─── */
-.section { background:white; border-radius:12px; padding:14px 16px; box-shadow:0 2px 8px rgba(0,0,0,0.07); margin-bottom:10px; }
-.s-title { font-size:10px; font-weight:700; color:#888; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:11px; }
-
-/* ─── TWO-COLUMN → stack on mobile ─── */
-.two { display:flex; flex-direction:column; gap:10px; margin-bottom:10px; }
-@media(min-width:640px){
-  .two { flex-direction:row; }
-  .two > .section { flex:1; margin-bottom:0; }
+/* ── KPI GRID ── */
+.kpi-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+@media(min-width:560px){ .kpi-grid { grid-template-columns:repeat(4,1fr); } }
+.kpi {
+  background:#16162a; border-radius:12px; padding:14px;
+  border-top:3px solid #333;
 }
+.kpi.sales   { border-top-color:#7c3aed; }
+.kpi.net     { border-top-color:#a78bfa; }
+.kpi.diners  { border-top-color:#06b6d4; }
+.kpi.avg     { border-top-color:#10b981; }
+.kpi.labor   { border-top-color:#f59e0b; }
+.kpi.food    { border-top-color:#ef4444; }
+.kpi.tips    { border-top-color:#ec4899; }
+.kpi.orders  { border-top-color:#8b5cf6; }
+.kpi-lbl { font-size:9px; color:rgba(255,255,255,0.35); font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:5px; }
+.kpi-val { font-size:20px; font-weight:900; color:white; line-height:1.1; }
+.kpi-sub { font-size:9px; color:rgba(255,255,255,0.3); margin-top:3px; }
+.bar { background:rgba(255,255,255,0.08); border-radius:4px; height:4px; margin-top:7px; overflow:hidden; }
+.bf { height:100%; border-radius:4px; }
+.bf.green  { background:#10b981; }
+.bf.orange { background:#f59e0b; }
+.bf.red    { background:#ef4444; }
+.bf.blue   { background:#06b6d4; }
+.bf.purple { background:#7c3aed; }
+.bf.pink   { background:#ec4899; }
 
-/* ─── COST ROWS ─── */
-.cr { display:flex; justify-content:space-between; align-items:center; padding:9px 11px; border-radius:8px; margin-bottom:6px; }
-.cr.n { background:#f8f9fa; }
-.cr.p { background:#fdf4ff; }
-.cr.y { background:#fff8e1; }
-.cr.c { background:#e0f7fa; }
-.cr.g { background:#f0fdf4; }
-.cr.d { background:#1a0a42; }
-.cr .l { font-size:11px; color:#555; }
-.cr .src { font-size:9px; color:#bbb; margin-top:1px; }
-.cr.d .l { color:rgba(255,255,255,0.65); font-size:12px; font-weight:700; }
-.cr .v { font-size:13px; font-weight:800; color:#0a0a2e; }
-.cr.d .v { color:white; font-size:15px; }
+/* ── SECTION ── */
+.section { background:#16162a; border-radius:12px; padding:16px; margin-bottom:12px; }
+.s-title { font-size:10px; font-weight:700; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:0.6px; margin-bottom:12px; }
 
-/* ─── SUPPLIER GRID ─── */
-.sup-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:7px; }
-@media(max-width:480px){ .sup-grid { grid-template-columns: repeat(2, 1fr); gap:6px; } }
-.sup-box { background:#f8f9fa; border-radius:8px; padding:10px 12px; }
-.sup-box .sv { font-size:14px; font-weight:800; color:#0a2342; }
-.sup-box .sl { font-size:9px; color:#999; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.sup-box .sc { font-size:9px; color:#aaa; margin-top:3px; }
+/* ── COST ROWS ── */
+.cr { display:flex; justify-content:space-between; align-items:center; padding:10px 12px; border-radius:8px; margin-bottom:6px; background:rgba(255,255,255,0.04); }
+.cr.total { background:rgba(124,58,237,0.2); }
+.cr .l { font-size:12px; color:rgba(255,255,255,0.6); }
+.cr .src { font-size:9px; color:rgba(255,255,255,0.25); margin-top:1px; }
+.cr .v { font-size:14px; font-weight:800; color:white; }
+.cr.total .l { color:white; font-weight:700; }
+.cr.total .v { color:#a78bfa; font-size:16px; }
 
-/* ─── FOOTER ─── */
-.footer { text-align:center; font-size:10px; color:#ccc; padding:12px 0 20px; line-height:2; }
-.refresh-btn {
-  display:inline-flex; align-items:center; gap:6px;
-  margin-top:8px; padding:10px 24px;
-  background:#3d1a7a; color:white; border:none;
-  border-radius:24px; font-size:12px; font-weight:700;
-  cursor:pointer; transition:opacity 0.2s;
-  -webkit-tap-highlight-color:transparent;
-}
-.refresh-btn:hover { opacity:0.85; }
-.refresh-btn:active { opacity:0.7; transform:scale(0.97); }
-.refresh-btn:disabled { opacity:0.5; cursor:not-allowed; }
-.last-sync { font-size:10px; color:#aaa; margin-top:6px; }
+/* ── SUPPLIER GRID ── */
+.sup-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+@media(max-width:480px){ .sup-grid { grid-template-columns:repeat(2,1fr); } }
+.sup-box { background:rgba(255,255,255,0.05); border-radius:8px; padding:10px; }
+.sup-box .sv { font-size:14px; font-weight:800; color:white; }
+.sup-box .sl { font-size:9px; color:rgba(255,255,255,0.35); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.sup-box .sc { font-size:9px; color:rgba(255,255,255,0.25); margin-top:2px; }
 
-/* ── SYNC ERROR POPUP ─────────────────────────────────── */
-#sync-error-popup {
-  display: none;
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  z-index: 8888;
-  background: rgba(0,0,0,0.7);
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-#sync-error-popup.show { display: flex; }
-.sep-box {
-  background: #160936;
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 18px;
-  padding: 32px 28px;
-  max-width: 360px;
-  width: 100%;
-  text-align: center;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-}
-.sep-icon { font-size: 48px; margin-bottom: 10px; }
-.sep-title { font-size: 18px; font-weight: 800; color: white; margin-bottom: 8px; }
-.sep-msg { font-size: 13px; color: rgba(255,255,255,0.55); margin-bottom: 24px; line-height: 1.6; }
-.sep-btn {
-  width: 100%; padding: 14px; border: none; border-radius: 12px;
-  background: linear-gradient(135deg,#4f1faa,#7c3aed);
-  color: white; font-size: 15px; font-weight: 800;
-  cursor: pointer; margin-bottom: 10px;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  font-family: inherit;
-}
-.sep-btn:hover { opacity: 0.88; }
-.sep-dismiss {
-  background: none; border: none;
-  color: rgba(255,255,255,0.35); font-size: 12px;
-  cursor: pointer; padding: 4px; font-family: inherit;
-}
-.sep-dismiss:hover { color: rgba(255,255,255,0.65); }
+/* ── FOOTER ── */
+.footer { text-align:center; padding:20px 0 10px; }
+.last-upd { font-size:10px; color:rgba(255,255,255,0.2); }
 
-/* ─── INVOICE LIST ─── */
-.inv-table { width:100%; border-collapse:collapse; font-size:11px; }
-.inv-table th { font-size:9px; color:#aaa; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; padding:5px 8px; border-bottom:1.5px solid #eee; text-align:right; }
-.inv-table td { padding:7px 8px; border-bottom:1px solid #f3f4f6; color:#333; vertical-align:middle; }
-.inv-table tr:last-child td { border-bottom:none; }
-.inv-table tr:hover td { background:#fafafa; }
-.inv-amt { font-weight:700; color:#0a2342; }
-.inv-date { color:#888; direction:ltr; text-align:left; white-space:nowrap; }
-.inv-sup { color:#555; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.inv-num { color:#bbb; font-size:9px; }
-.inv-toggle { font-size:10px; color:#6d28d9; cursor:pointer; display:inline-block; margin-top:6px; user-select:none; }
-.inv-toggle:hover { text-decoration:underline; }
-
+/* ── NO DATA ── */
+.no-data { text-align:center; padding:40px 20px; color:rgba(255,255,255,0.3); font-size:14px; }
 </style>
 </head>
 <body>
-<div id="paywall" style="position:fixed;inset:0;background:#0a0520;display:flex;align-items:center;justify-content:center;z-index:99999;padding:20px;">
+
+<!-- PAYWALL -->
+<div id="paywall">
   <div class="pw-box">
-    <div class="pw-logo">🏠</div>
+    <div class="pw-logo">🍽️</div>
     <div class="pw-title">Guest Room Dashboard</div>
-    <div class="pw-sub">הזן קוד גישה להמשך</div>
-    <div id="code-form">
-      <input class="pw-input" id="access-code" type="password" placeholder="קוד גישה" maxlength="20"
-        onkeydown="if(event.key==='Enter'){submitCode();}" autocomplete="off" />
-      <button class="pw-btn" onclick="submitCode()">כניסה</button>
-      <div class="pw-err" id="code-err"></div>
-      <div class="pw-divider">— או —</div>
-      <button class="pw-req-btn" onclick="showRequest()">בקש גישה + חשבונית</button>
-    </div>
-    <div id="req-form" style="display:none;">
-      <input class="req-input" id="req-name" type="text" placeholder="שם מלא" />
-      <input class="req-input" id="req-email" type="email" placeholder="כתובת אימייל" dir="ltr" />
-      <button class="pw-btn" onclick="submitRequest()">שלח בקשה</button>
-      <div class="pw-err" id="req-err"></div>
-      <div class="pw-ok"  id="req-ok"></div>
-      <button class="pw-req-btn" style="margin-top:8px;" onclick="showCode()">← חזרה להזנת קוד</button>
-    </div>
+    <div class="pw-sub">הכנס קוד גישה להמשך</div>
+    <input class="pw-input" id="pw-input" type="password" placeholder="קוד גישה" autocomplete="off" />
+    <button class="pw-btn" onclick="checkPW()">כניסה</button>
+    <div class="pw-err" id="pw-err"></div>
   </div>
 </div>
 
-
-<!-- v1779612774 -->
-<!-- SYNC ERROR POPUP -->
-<div id="sync-error-popup">
-  <div class="sep-box">
-    <div class="sep-icon">⚠️</div>
-    <div class="sep-title">הנתונים לא עודכנו</div>
-    <div class="sep-msg" id="sep-msg">לא ניתן לטעון נתונים עדכניים.<br>לחץ על סנכרן כדי לנסות שוב.</div>
-    <button class="sep-btn" onclick="dismissPopupAndSync()">
-      <span>🔄</span> סנכרן עכשיו
-    </button>
-    <button class="sep-dismiss" onclick="dismissSyncPopup()">המשך בכל זאת</button>
-  </div>
-</div>
-
-<!-- ═══ LOADING ═══ -->
-<div class="loading-overlay" id="loading" style="display:none;">
+<!-- LOADING -->
+<div id="loading" style="display:none">
   <div class="spin"></div>
-  <div class="loading-text">טוען נתונים חיים...</div>
+  <div class="loading-text" id="loading-text">טוען נתונים...</div>
 </div>
 
-<!-- ═══ HEADER ═══ -->
+<!-- HEADER -->
 <div class="header">
   <div>
-    <div class="h-title">🏠 Guest Room</div>
-    <div class="h-sub">BeePort POS · ShiftOrganizer · Smart Basic 2</div>
+    <div class="h-logo">Guest <span>Room</span></div>
+    <div class="h-month" id="h-month">—</div>
   </div>
-  <div class="h-right">
-    <div class="h-badge" id="badge">טוען...</div>
-    <div class="h-date" id="hdate">—</div>
-  </div>
+  <button class="sync-btn" id="sync-btn" onclick="triggerSync()">
+    <span>🔄</span> סנכרן עכשיו
+  </button>
 </div>
 
-<!-- ═══ MAIN CONTENT ═══ -->
-<div class="container" id="main">
-  <div class="kpi-row">
-    <div class="kpi k-sales">
-      <div class="kpi-lbl">מכירות MTD כולל מע"מ</div>
-      <div class="kpi-val" id="sales_vat">—</div>
-      <div class="kpi-sub">✓ BeePort POS</div>
-      <span class="badge bp" id="days_badge">—</span>
-    </div>
-    <div class="kpi k-net">
-      <div class="kpi-lbl">מכירות נטו ללא מע"מ</div>
-      <div class="kpi-val" id="sales_net">—</div>
-      <div class="kpi-sub">מע"מ 18%</div>
-    </div>
-    <div class="kpi k-diners">
-      <div class="kpi-lbl">סועדים</div>
-      <div class="kpi-val" id="diners_val">—</div>
-      <div class="kpi-sub">✓ BeePort POS</div>
-      <span class="badge bc" id="ppa_badge">—</span>
-    </div>
-    <div class="kpi k-orders">
-      <div class="kpi-lbl">עסקאות</div>
-      <div class="kpi-val" id="orders_val">—</div>
-      <div class="kpi-sub">✓ BeePort POS</div>
-    </div>
-  </div>
+<!-- MAIN -->
+<div class="container" id="main" style="display:none">
 
-  <div class="kpi-row">
-    <div class="kpi k-labor">
-      <div class="kpi-lbl">עלות עבודה MTD</div>
-      <div class="kpi-val" id="labor_val">—</div>
-      <div class="kpi-sub">✓ ShiftOrganizer</div>
-      <span class="badge" id="labor_badge">—</span>
-      <div class="bar"><div class="bf" id="labor_bar" style="background:#ec4899;width:0%"></div></div>
-    </div>
-    <div class="kpi k-food">
-      <div class="kpi-lbl">עלות מזון MTD (נטו)</div>
-      <div class="kpi-val" id="food_val">—</div>
-      <div class="kpi-sub">✓ Smart Basic 2</div>
-      <span class="badge" id="food_badge">—</span>
-      <div class="bar"><div class="bf" id="food_bar" style="background:#f59e0b;width:0%"></div></div>
-    </div>
-    <div class="kpi k-tips">
-      <div class="kpi-lbl">טיפים MTD</div>
-      <div class="kpi-val" id="tips_val">—</div>
-      <div class="kpi-sub">✓ ShiftOrganizer</div>
-      <span class="badge bb" id="tips_badge">—</span>
-    </div>
-    <div class="kpi k-fore">
-      <div class="kpi-lbl">תחזית חודש מלא</div>
-      <div class="kpi-val" id="forecast">—</div>
-      <div class="kpi-sub" id="daily_avg_sub">—</div>
-    </div>
-  </div>
-
-  <div class="hero" id="hero_card">
+  <!-- HERO -->
+  <div class="hero green" id="hero">
     <div>
-      <div class="sm">סה"כ עלויות (מזון + שכר) מתוך מכירות נטו</div>
-      <div class="big" id="total_pct">—</div>
-      <div class="pill pr" id="hero_status">—</div>
-      <div style="font-size:10px;opacity:0.6;margin-top:6px;">יעד: 45%</div>
+      <div class="lbl">עלות כוללת (מזון + שכר)</div>
+      <div class="big" id="total-pct">—%</div>
+      <div class="sub" id="hero-sub">—</div>
+      <div class="target">🎯 יעד: 45%</div>
     </div>
-    <div style="text-align:right;direction:rtl;display:flex;flex-direction:column;gap:4px;min-width:80px;">
-      <div style="background:rgba(255,255,255,0.15);border-radius:8px;padding:6px 10px;">
-        <div style="font-size:9px;opacity:0.7;margin-bottom:2px;">שכר</div>
-        <div style="font-size:20px;font-weight:800;" id="hero_labor_pct">—</div>
-      </div>
-      <div style="background:rgba(255,255,255,0.15);border-radius:8px;padding:6px 10px;">
-        <div style="font-size:9px;opacity:0.7;margin-bottom:2px;">מזון</div>
-        <div style="font-size:20px;font-weight:800;" id="hero_food_pct">—</div>
-      </div>
+    <div style="font-size:56px" id="hero-emoji">📊</div>
+  </div>
+
+  <!-- KPI ROW 1: מכירות -->
+  <div class="kpi-grid">
+    <div class="kpi sales">
+      <div class="kpi-lbl">מכירות ברוטו</div>
+      <div class="kpi-val" id="k-sales-vat">—</div>
+      <div class="kpi-sub">כולל מע"מ</div>
+    </div>
+    <div class="kpi net">
+      <div class="kpi-lbl">מכירות נטו</div>
+      <div class="kpi-val" id="k-sales-net">—</div>
+      <div class="kpi-sub">ללא מע"מ</div>
+    </div>
+    <div class="kpi diners">
+      <div class="kpi-lbl">סועדים</div>
+      <div class="kpi-val" id="k-diners">—</div>
+      <div class="kpi-sub" id="k-days">—</div>
+    </div>
+    <div class="kpi avg">
+      <div class="kpi-lbl">ממוצע לסועד</div>
+      <div class="kpi-val" id="k-avg">—</div>
+      <div class="kpi-sub">ברוטו</div>
     </div>
   </div>
 
-  <div class="two">
-    <div class="section">
-      <div class="s-title">📊 סיכום עלויות</div>
-      <div class="cr g">
-        <div><div class="l">סועדים</div><div class="src">BeePort POS</div></div>
-        <span class="v" id="cr_diners">—</span>
+  <!-- KPI ROW 2: עלויות -->
+  <div class="kpi-grid">
+    <div class="kpi labor">
+      <div class="kpi-lbl">שכר נטו</div>
+      <div class="kpi-val" id="k-labor">—</div>
+      <div class="kpi-sub" id="k-labor-pct">—</div>
+      <div class="bar"><div class="bf orange" id="bar-labor" style="width:0%"></div></div>
+    </div>
+    <div class="kpi food">
+      <div class="kpi-lbl">עלות מזון</div>
+      <div class="kpi-val" id="k-food">—</div>
+      <div class="kpi-sub" id="k-food-pct">—</div>
+      <div class="bar"><div class="bf red" id="bar-food" style="width:0%"></div></div>
+    </div>
+    <div class="kpi tips">
+      <div class="kpi-lbl">טיפים</div>
+      <div class="kpi-val" id="k-tips">—</div>
+      <div class="kpi-sub" id="k-tips-pct">—</div>
+      <div class="bar"><div class="bf pink" id="bar-tips" style="width:0%"></div></div>
+    </div>
+    <div class="kpi orders">
+      <div class="kpi-lbl">הזמנות</div>
+      <div class="kpi-val" id="k-orders">—</div>
+      <div class="kpi-sub" id="k-avg-ticket">—</div>
+    </div>
+  </div>
+
+  <!-- COST BREAKDOWN -->
+  <div class="section">
+    <div class="s-title">פירוט עלויות</div>
+    <div class="cr">
+      <div>
+        <div class="l">עלות מעסיק</div>
+        <div class="src">Shift Organizer</div>
       </div>
-      <div class="cr c">
-        <div><div class="l">עסקאות</div><div class="src">BeePort POS</div></div>
-        <span class="v" id="cr_orders">—</span>
+      <div class="v" id="cr-labor-gross">—</div>
+    </div>
+    <div class="cr">
+      <div>
+        <div class="l">טיפים</div>
+        <div class="src">Shift Organizer</div>
       </div>
-      <div class="cr p">
-        <div><div class="l">ממוצע לסועד</div><div class="src">BeePort POS</div></div>
-        <span class="v" id="cr_ppa">—</span>
+      <div class="v" id="cr-tips">—</div>
+    </div>
+    <div class="cr">
+      <div>
+        <div class="l">שכר נטו (עלות מעסיק − טיפים)</div>
+        <div class="src">Shift Organizer</div>
       </div>
-      <div class="cr c">
-        <div><div class="l">מכירות לשעה (נטו)</div><div class="src">BeePort POS</div></div>
-        <span class="v" id="cr_sph">—</span>
+      <div class="v" id="cr-labor-net">—</div>
+    </div>
+    <div class="cr">
+      <div>
+        <div class="l">עלות מזון</div>
+        <div class="src">Smart Basic 2</div>
       </div>
-      <div class="cr p">
-        <div><div class="l">עלות שכר</div><div class="src">ShiftOrganizer</div></div>
-        <span class="v" id="cr_labor">—</span>
-      </div>
-      <div class="cr y">
-        <div><div class="l">עלות מזון (נטו)</div><div class="src">Smart Basic 2</div></div>
-        <span class="v" id="cr_food">—</span>
-      </div>
-      <div class="cr n">
-        <div><div class="l">טיפים</div><div class="src">ShiftOrganizer</div></div>
-        <span class="v" id="cr_tips">—</span>
-      </div>
-      <div class="cr d">
-        <div><div class="l">סה"כ עלויות</div></div>
-        <span class="v" id="cr_total">—</span>
+      <div class="v" id="cr-food">—</div>
+    </div>
+    <div class="cr total">
+      <div class="l">סה"כ עלות (שכר + מזון)</div>
+      <div class="v" id="cr-total-pct">—%</div>
+    </div>
+  </div>
+
+  <!-- TWO COLS: food suppliers + labor details -->
+  <div style="display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
+
+    <!-- ספקים -->
+    <div class="section" style="flex:1; min-width:260px;">
+      <div class="s-title">ספקים — עלות מזון</div>
+      <div class="sup-grid" id="sup-grid">
+        <div class="no-data">אין נתונים</div>
       </div>
     </div>
 
-    <div class="section">
-      <div class="s-title">🧾 ספקי מזון ושתייה — Smart Basic 2</div>
-
-      <!-- Last invoice banner — clickable, opens Smart Basic 2 receipts -->
-      <div id="last_invoice_banner" style="background:#fffbeb;border:1.5px solid #fbbf24;border-radius:10px;padding:11px 13px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;cursor:pointer;-webkit-tap-highlight-color:transparent;" onclick="window.open('https://foodcostapp.com/Welcome','_blank')" title="לחץ לפתיחת רשימת החשבוניות ב-Smart Basic 2">
-        <span style="font-size:20px;">🧾</span>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:9px;color:#92400e;font-weight:600;margin-bottom:2px;text-transform:uppercase;letter-spacing:0.3px;">חשבונית אחרונה — לחץ לפתיחת Smart Basic 2</div>
-          <div id="last_inv_text" style="font-size:13px;font-weight:800;color:#b45309;">טוען...</div>
+    <!-- שכר -->
+    <div class="section" style="flex:1; min-width:260px;">
+      <div class="s-title">שכר — פירוט</div>
+      <div id="labor-detail">
+        <div class="cr">
+          <div><div class="l">שעות עבודה</div></div>
+          <div class="v" id="ld-hours">—</div>
         </div>
-        <span style="font-size:16px;color:#d97706;">←</span>
+        <div class="cr">
+          <div><div class="l">% שכר מנטו</div></div>
+          <div class="v" id="ld-labor-pct">—</div>
+        </div>
+        <div class="cr">
+          <div><div class="l">% טיפים מברוטו</div></div>
+          <div class="v" id="ld-tips-pct">—</div>
+        </div>
+        <div class="cr">
+          <div><div class="l">ממוצע לסועד</div></div>
+          <div class="v" id="ld-avg">—</div>
+        </div>
       </div>
-
-      <!-- Suppliers table -->
-      <div id="vendors_grid"></div>
-      <span id="inv-list-toggle" class="inv-toggle" onclick="toggleInvList()" style="display:none;">▼ הצג את כל החשבוניות</span>
-      <div id="inv-list-wrap" style="display:none;margin-top:10px;max-height:320px;overflow-y:auto;">
-        <table class="inv-table">
-          <thead><tr>
-            <th>תאריך</th><th>ספק</th><th>מס׳ חשבונית</th><th>נטו</th><th>ברוטו</th>
-          </tr></thead>
-          <tbody id="inv-list-body"></tbody>
-        </table>
-      </div>
-      <div id="sup-total" style="font-size:11px;color:#666;margin-top:8px;text-align:right;"></div>
     </div>
+
   </div>
 
+  <!-- FOOTER -->
   <div class="footer">
-    <div class="last-sync" id="last_sync">—</div>
-    <button class="refresh-btn" id="syncBtn" onclick="syncNow()" title="משוך נתונים עדכניים מכל המקורות">
-      <span>🔄</span> סנכרן נתונים
-    </button>
-    <br>
-    <span style="margin-top:6px;display:inline-block;">Powered by SmartPlate · Rosa Engine</span>
+    <div class="last-upd" id="last-upd">—</div>
   </div>
-</div>
+
+</div><!-- /container -->
 
 <script>
-const ROSA = 'https://rosa-6d8ebb9e.base44.app/functions/grSync';
-const NOTIFY = 'https://rosa-6d8ebb9e.base44.app/functions/grAccessRequest';
-const VALID_CODES = ['GSMART2026', 'SMARTPLATE'];
-const STORAGE_KEY = 'gr_access_v1';
-
-// ─── PAYWALL LOGIC ───
-function getDeviceId() {
-  let id = localStorage.getItem('gr_device_id');
-  if (!id) { id = 'dev_' + Math.random().toString(36).substr(2,12); localStorage.setItem('gr_device_id', id); }
-  return id;
-}
-
-function checkAccess() {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (!saved) return false;
-  // Accept plain string code
-  if (VALID_CODES.includes(saved)) return true;
-  // Accept JSON format
-  try {
-    const d = JSON.parse(saved);
-    if (d.granted && d.code) return true;
-  } catch(e) {}
-  return false;
-}
-
-function submitCode() {
-  const input = document.getElementById('access-code');
-  const errEl = document.getElementById('code-err');
-  const code  = (input ? input.value : '').trim().toUpperCase();
-  if (!VALID_CODES.includes(code)) {
-    if (errEl) errEl.textContent = 'קוד שגוי, נסה שוב';
-    if (input) { input.value=''; input.focus(); }
-    return;
+// ── PAYWALL ──────────────────────────────────────────────────────────
+const CODES = ['Gsmart2026','SMARTPLATE'];
+function checkPW() {
+  const v = document.getElementById('pw-input').value.trim();
+  if (CODES.includes(v)) {
+    localStorage.setItem('gr_access','1');
+    document.getElementById('paywall').style.display = 'none';
+    init();
+  } else {
+    document.getElementById('pw-err').textContent = 'קוד שגוי, נסה שנית';
   }
-  // Valid — save and open
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ granted: true, code: code, ts: Date.now() }));
-  document.getElementById('paywall').style.display = 'none';
+}
+document.getElementById('pw-input').addEventListener('keydown', e => { if(e.key==='Enter') checkPW(); });
+
+// ── HELPERS ──────────────────────────────────────────────────────────
+const fmt  = n => n==null ? '—' : '₪' + Math.round(n).toLocaleString('he-IL');
+const fmtP = n => n==null ? '—' : n.toFixed(1) + '%';
+const bar  = (id, pct, cls) => {
+  const el = document.getElementById(id);
+  if(el) { el.style.width = Math.min(pct||0, 100) + '%'; el.className = 'bf ' + cls; }
+};
+function heroColor(pct) {
+  if(pct < 45)  return ['green','✅'];
+  if(pct < 50)  return ['orange','⚠️'];
+  return ['red','🚨'];
+}
+function setLoading(txt) {
   document.getElementById('loading').style.display = 'flex';
-  loadDashboard();
+  document.getElementById('loading-text').textContent = txt || 'טוען נתונים...';
 }
-
-function showRequest() {
-  document.getElementById('code-form').style.display = 'none';
-  document.getElementById('req-form').style.display = 'block';
-}
-function showCode() {
-  document.getElementById('req-form').style.display = 'none';
-  document.getElementById('code-form').style.display = 'block';
-}
-
-async function submitRequest() {
-  const name  = document.getElementById('req-name').value.trim();
-  const email = document.getElementById('req-email').value.trim();
-  const okEl  = document.getElementById('req-ok');
-  const errEl = document.getElementById('req-err');
-  errEl.textContent = '';
-  if (!name || !email) { errEl.textContent = 'נא למלא שם ואימייל'; return; }
-  if (!email.includes('@')) { errEl.textContent = 'כתובת אימייל לא תקינה'; return; }
-
-  okEl.textContent = 'שולח...';
-  try {
-    await fetch(NOTIFY, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name, email,
-        device_id: getDeviceId(),
-        dashboard: 'Guest Room MTD',
-        request_type: 'code_and_invoice',
-        timestamp: new Date().toISOString()
-      })
-    });
-  } catch(e) {}
-
-  okEl.textContent = '✅ הבקשה נשלחה! תקבל קוד גישה + חשבונית לתשלום במייל בקרוב';
-  document.getElementById('req-name').value = '';
-  document.getElementById('req-email').value = '';
-}
-
-// ─── ENTER KEY handled by onkeydown on input ───
-
-
-
-// ─── FORMAT ───
-const fmt  = n => n == null ? '—' : '₪' + Math.round(n).toLocaleString('he-IL');
-const fmtP = n => n == null ? '—' : n.toFixed(1) + '%';
-const fmtN = n => n == null ? '—' : Math.round(n).toLocaleString('he-IL');
-
-// ─── LOAD DASHBOARD ───
-const SMARTBASIC2_APP_ID = '699c4d19592434b7f867b2c6';
-const GR_EMAIL = 'guestroom@smartplate.org';
-
-// Fetch food cost + vendors directly from Smart Basic 2 (client-side, paginated)
-async function fetchVendors() {
-  try {
-    const SB2 = '699c4d19592434b7f867b2c6';
-    const EMAIL = 'guestroom@smartplate.org';
-    const now = new Date();
-    const month = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
-
-    const allRecords = [];
-    let skip = 0;
-    let hasMore = true;
-    while (hasMore) {
-      const url = 'https://rosa-6d8ebb9e.base44.app/api/apps/' + SB2 + '/entities/SupplyReceipt/filter?skip=' + skip + '&limit=500';
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ created_by: EMAIL, is_refund: false })
-      });
-      if (!res.ok) break;
-      const data = await res.json();
-      const recs = Array.isArray(data) ? data : (data.records || []);
-      allRecords.push(...recs);
-      hasMore = data.has_more === true;
-      skip += 500;
-    }
-
-    let foodNet = 0, foodGross = 0;
-    const supMap = {};
-    const seen = new Set();
-    let latestDate = '';
-    let latestInvoice = null;
-
-    for (const r of allRecords) {
-      if (r.is_refund) continue;
-      const d = r.invoice_date || '';
-      if (!d.startsWith(month)) continue;
-      const gross = Number(r.invoice_total) || 0;
-      if (gross <= 0) continue;
-      const key = (r.supplier_name||'') + '||' + (r.invoice_number||'');
-      if (seen.has(key)) continue;
-      seen.add(key);
-      const net = r.is_zero_vat ? gross : gross / 1.18;
-      foodNet += net;
-      foodGross += gross;
-      const sup = r.supplier_name || 'אחר';
-      if (!supMap[sup]) supMap[sup] = { net: 0, gross: 0, count: 0, last_date: '' };
-      supMap[sup].net += net;
-      supMap[sup].gross += gross;
-      supMap[sup].count += 1;
-      if (d > supMap[sup].last_date) supMap[sup].last_date = d;
-      if (d > latestDate) {
-        latestDate = d;
-        latestInvoice = { supplier: sup, invoice_number: r.invoice_number||'', date: d, amount: Math.round(net), amount_gross: Math.round(gross) };
-      }
-    }
-
-    const vendors = Object.entries(supMap)
-      .sort((a,b) => b[1].net - a[1].net)
-      .map(([name, v]) => ({
-        name,
-        net: Math.round(v.net),
-        gross: Math.round(v.gross),
-        count: v.count,
-        last_date: v.last_date
-      }));
-
-    window._grAllInvoices = allRecords.filter(r => {
-      const d = r.invoice_date || '';
-      const now2 = new Date();
-      const month2 = now2.getFullYear() + '-' + String(now2.getMonth()+1).padStart(2,'0');
-      return d.startsWith(month2) && !r.is_refund && (Number(r.invoice_total)||0) > 0;
-    }).sort((a,b) => (b.invoice_date||'').localeCompare(a.invoice_date||''));
-    return { vendors, last_invoice: latestInvoice, food_cost_net: Math.round(foodNet) };
-  } catch(e) {
-    console.warn('vendors fetch failed:', e);
-    return { vendors: [], last_invoice: null, food_cost_net: 0 };
-  }
-}
-
-async function loadDashboard() {
-  // ═══════════════════════════════════════════════════════════
-  // ⚠️ RULE — GUEST ROOM DASHBOARD: ALWAYS LIVE ON EVERY LOAD
-  // Every page open fetches LIVE from all 3 sources in parallel.
-  // NO cache, NO localStorage for data, NO fallback to stale entity.
-  //
-  // 1. grBeePortSync (POST) → SALES  — closed Z-reports, minus tips
-  // 2. grSync        (GET)  → LABOR  — ShiftOrganizer (live attempt, entity fallback)
-  // 3. grFoodCost    (GET)  → FOOD   — Smart Basic 2, invoice_date = current month
-  //
-  // DO NOT add localStorage caching for financial data here.
-  // DO NOT fall back to grSync for food cost or vendors.
-  // DO NOT fall back to grSync for sales.
-  // ═══════════════════════════════════════════════════════════
-  try {
-    const withTimeout = (promise, ms) => Promise.race([promise, new Promise(r => setTimeout(() => r({}), ms))]);
-    const [salesRes, syncRes] = await Promise.all([
-      withTimeout(fetch('https://rosa-6d8ebb9e.base44.app/functions/grBeePortSync', {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'}).then(r => r.json()).catch(() => ({})), 8000),
-      withTimeout(fetch('https://rosa-6d8ebb9e.base44.app/functions/grSync').then(r => r.json()).catch(() => ({})), 8000)
-    ]);
-    // Food cost + vendors come from grSync (which reads entity cache populated by automations)
-    const foodRes = { food_cost_net: syncRes.food_cost || 0, vendors: syncRes.vendors || [], last_invoice: syncRes.last_invoice || null };
-
-    const d = {};
-
-    // SALES — grBeePortSync first, fallback to grSync entity cache
-    d.sales_vat     = salesRes.sales_gross   || syncRes.sales_vat  || 0;
-    d.sales_net     = salesRes.sales_net     || syncRes.sales_net  || 0;
-    d.tips          = syncRes.tips       || 0;  // ⚠️ TIPS: ShiftOrganizer ONLY (NOT BeePort/BeeComm)
-    d.diners        = salesRes.diners        || 0;
-    d.order_count   = salesRes.order_count   || 0;
-    d.avg_per_diner = salesRes.avg_per_diner || 0;
-    d.month         = salesRes.month         || syncRes.month      || '';
-
-    // LABOR — grSync (ShiftOrganizer live attempt, entity fallback if SO blocked)
-    d.labor_cost     = syncRes.labor_cost    || 0;
-    d.labor_pct      = syncRes.labor_pct     || 0;
-    d.days_collected = syncRes.days_collected|| 0;
-
-    // FOOD COST + VENDORS — grFoodCost only (Smart Basic 2 live, invoice_date = current month)
-    // fetchVendors() returns: { food_cost_net, vendors, last_invoice } — direct from Smart Basic 2
-    d.food_cost     = foodRes.food_cost_net || 0;
-    d.food_cost_net = d.food_cost;
-    d.food_pct      = 0; // recalculated in render()
-    d.vendors       = (foodRes.vendors && foodRes.vendors.length > 0) ? foodRes.vendors : [];
-    d.last_invoice  = foodRes.last_invoice || null;
-
-    render(d);
-  } catch(e) {
-    document.getElementById('loading').style.display = 'none';
-    console.error('fetch error', e);
-    showSyncErrorPopup('שגיאת תקשורת עם השרת.<br>לחץ לסנכרון מחדש.');
-  }
-}
-
-function render(d) {
-  // ⚠️ All data here comes from live API calls — no overrides, no hardcoded values
-  let salesVat = d.sales_vat || 0;
-  const monthKey = d.month || '';
-  const salesNet  = salesVat / 1.18;
-  const labor     = d.labor_cost  || 0;
-  const foodNet   = d.food_cost_net || (salesNet * (d.food_pct || 0) / 100);
-  const tips      = d.tips        || 0;
-  const laborPct  = d.labor_pct   || (salesNet > 0 ? labor / salesNet * 100 : 0);
-  const foodPct   = d.food_pct    || (salesNet > 0 ? foodNet / salesNet * 100 : 0);
-  // Always recalculate total client-side
-  const totalPct  = salesNet > 0 ? (labor + foodNet) / salesNet * 100 : 0;
-  const tipsPct   = salesVat > 0 ? tips / salesVat * 100 : 0;
-  const days      = d.days_collected || 0;
-  const diners    = d.diners || 0;
-  const orders    = d.order_count || 0;
-  const ppa           = d.avg_per_diner || (diners > 0 ? Math.round(salesNet / diners) : 0);
-  const salesPerHour  = d.sales_per_hour || 0;
-  const daysLeft  = 31 - days;
-  const dailyAvg  = days > 0 ? salesNet / days : 0;
-  const forecast  = dailyAvg * 31;
-  const vendors   = d.vendors || [];
-
-  // Header
-  const now = new Date();
-  // Dynamic month name from API
-  const monthNames = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
-  const monthStr = d.month || (now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0'));
-  const monthIdx = parseInt(monthStr.split('-')[1]) - 1;
-  const monthName = monthNames[monthIdx] || monthStr;
-  document.getElementById('badge').textContent  = `MTD ${monthName} · ${days} ימים`;
-  document.getElementById('hdate').textContent  = now.toLocaleDateString('he-IL', { day:'numeric', month:'long', year:'numeric' });
-
-  // KPI row 1
-  document.getElementById('sales_vat').textContent  = fmt(salesVat);
-  document.getElementById('sales_net').textContent  = fmt(salesNet);
-  document.getElementById('diners_val').textContent = fmtN(diners);
-  document.getElementById('orders_val').textContent = fmtN(orders);
-  document.getElementById('days_badge').textContent = `${days} ימים`;
-  document.getElementById('ppa_badge').textContent  = `₪${Math.round(ppa)} לסועד`;
-
-  // KPI row 2
-  document.getElementById('labor_val').textContent = fmt(labor);
-  document.getElementById('food_val').textContent  = fmt(foodNet);
-  document.getElementById('tips_val').textContent  = fmt(tips);
-  document.getElementById('forecast').textContent  = fmt(forecast);
-  document.getElementById('daily_avg_sub').textContent = `ממוצע יומי ₪${Math.round(dailyAvg).toLocaleString('he-IL')} נטו`;
-
-  const lBadge = document.getElementById('labor_badge');
-  lBadge.textContent = fmtP(laborPct);
-  lBadge.className = 'badge ' + (laborPct < 28 ? 'bg' : laborPct < 32 ? 'by' : 'br');
-  document.getElementById('labor_bar').style.width = Math.min(laborPct, 60) + '%';
-
-  const fBadge = document.getElementById('food_badge');
-  fBadge.textContent = fmtP(foodPct);
-  fBadge.className = 'badge ' + (foodPct < 28 ? 'bg' : foodPct < 33 ? 'by' : 'br');
-  document.getElementById('food_bar').style.width = Math.min(foodPct, 60) + '%';
-
-  document.getElementById('tips_badge').textContent = fmtP(tipsPct) + ' מגרוסס';
-
-  // Hero — target is 45%
-  const TARGET = 45;
-  const hero = document.getElementById('hero_card');
-  hero.className = 'hero ' + (totalPct <= TARGET ? 'green' : totalPct < TARGET + 5 ? 'yellow' : 'red');
-  document.getElementById('total_pct').textContent    = fmtP(totalPct);
-  document.getElementById('hero_status').textContent  = totalPct <= TARGET ? '✅ ביעד (45%)' : totalPct < TARGET + 5 ? '⚠️ מעל יעד (45%)' : '🔴 חריגה מיעד (45%)';
-  document.getElementById('hero_labor_pct').textContent = fmtP(laborPct);
-  document.getElementById('hero_food_pct').textContent  = fmtP(foodPct);
-
-  // Summary rows
-  document.getElementById('cr_diners').textContent = fmtN(diners);
-  document.getElementById('cr_orders').textContent = fmtN(orders);
-  document.getElementById('cr_ppa').textContent    = `₪${Math.round(ppa)}`;
-  document.getElementById('cr_labor').textContent  = fmt(labor);
-  document.getElementById('cr_food').textContent   = fmt(foodNet);
-  document.getElementById('cr_tips').textContent   = fmt(tips);
-  document.getElementById('cr_total').textContent  = fmtP(totalPct);
-
-  // Vendors from grSync (entity cache) OR fetch live from Smart Basic 2
-  renderVendors(vendors, d.last_invoice);
-
-  document.getElementById('last_sync').textContent = 'עדכון אחרון: ' + now.toLocaleTimeString('he-IL');
+function hideLoading() {
   document.getElementById('loading').style.display = 'none';
 }
+function currentMonth() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+}
+function monthLabel(m) {
+  if(!m) return '';
+  const [y,mo] = m.split('-');
+  const names = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  return names[parseInt(mo)-1] + ' ' + y;
+}
 
-// ── RENDER VENDORS ──
-function renderVendors(vendors, lastInvoice) {
-  const grid = document.getElementById('vendors_grid');
-  const banner = document.getElementById('last_inv_text');
-  const invBannerWrap = document.getElementById('last_invoice_banner');
+// ── ROSA API ──────────────────────────────────────────────────────────
+const ROSA = 'https://rosa-6d8ebb9e.base44.app/api/functions';
 
-  // Last invoice banner
-  if (lastInvoice && lastInvoice.supplier) {
-    const d = lastInvoice.date ? lastInvoice.date.substring(5).split('-').reverse().join('/') : '';
-    const amtStr = lastInvoice.amount ? ' · ₪' + Math.round(lastInvoice.amount).toLocaleString('he-IL') : '';
-    const numStr = lastInvoice.invoice_number && lastInvoice.invoice_number !== '—' ? ' · ' + lastInvoice.invoice_number : '';
-    banner.textContent = '🧾 ' + lastInvoice.supplier + numStr + amtStr + (d ? '  (' + d + ')' : '');
-    if (invBannerWrap) {
-      invBannerWrap.style.cursor = 'pointer';
-      invBannerWrap.onclick = () => window.open('https://foodcostapp.com/Welcome', '_blank');
-    }
-  } else {
-    banner.textContent = '—';
+async function fetchGRData() {
+  const r = await fetch(ROSA + '/grSync', { method:'GET' });
+  if(!r.ok) throw new Error('grSync failed ' + r.status);
+  return r.json();
+}
+
+async function fetchFoodCost() {
+  // Live fetch from Smart Basic 2 — paginated, filter by guestroom@smartplate.org, current month
+  const APP_ID = '699c4d19592434b7f867b2c6';
+  const BASE   = 'https://app.base44.com/api/apps/' + APP_ID + '/entities/SupplyReceipt/filter';
+  const month  = currentMonth();
+  let skip = 0, all = [];
+  while(true) {
+    const r = await fetch(BASE + '?skip=' + skip + '&limit=500', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ created_by: 'guestroom@smartplate.org' })
+    });
+    if(!r.ok) break;
+    const d = await r.json();
+    const rows = d.records || d || [];
+    all.push(...rows);
+    if(!d.has_more) break;
+    skip += 500;
   }
+  // Filter current month, exclude refunds and zero totals
+  const filtered = all.filter(r =>
+    r.invoice_date && r.invoice_date.startsWith(month) &&
+    !r.is_refund && r.invoice_total > 0
+  );
+  // Dedup by (supplier_name, invoice_number) — keep MAX invoice_total
+  const map = {};
+  for(const r of filtered) {
+    const key = (r.supplier_name||'') + '|' + (r.invoice_number||'');
+    if(!map[key] || r.invoice_total > map[key].invoice_total) map[key] = r;
+  }
+  const deduped = Object.values(map);
+  // Aggregate by supplier
+  const smap = {};
+  let total_net = 0;
+  for(const r of deduped) {
+    const net = r.is_zero_vat ? r.invoice_total : r.invoice_total / 1.18;
+    total_net += net;
+    if(!smap[r.supplier_name]) smap[r.supplier_name] = { name:r.supplier_name, net:0, gross:0, count:0 };
+    smap[r.supplier_name].net   += net;
+    smap[r.supplier_name].gross += r.invoice_total;
+    smap[r.supplier_name].count++;
+  }
+  const vendors = Object.values(smap).sort((a,b) => b.net - a.net);
+  return { food_cost_net: total_net, vendors };
+}
 
-  if (!vendors || vendors.length === 0) {
-    grid.innerHTML = '<div style="color:#bbb;font-size:12px;text-align:center;padding:12px;">אין נתוני ספקים</div>';
+// ── TRIGGER SYNC ─────────────────────────────────────────────────────
+async function triggerSync() {
+  const btn = document.getElementById('sync-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span>⏳</span> מסנכרן...';
+  try {
+    await fetch(ROSA + '/grTriggerSync', { method:'POST', headers:{'Content-Type':'application/json'}, body:'{}' });
+    // Poll every 4 seconds for up to 90s
+    let tries = 0;
+    const poll = setInterval(async () => {
+      tries++;
+      try {
+        const d = await fetchGRData();
+        const prev = localStorage.getItem('gr_last_upd');
+        if(d.last_updated && d.last_updated !== prev) {
+          clearInterval(poll);
+          renderAll(d, null); // food will reload separately
+          loadFoodAndRender(d);
+          btn.disabled = false;
+          btn.innerHTML = '<span>🔄</span> סנכרן עכשיו';
+        }
+      } catch(e){}
+      if(tries > 22) {
+        clearInterval(poll);
+        btn.disabled = false;
+        btn.innerHTML = '<span>🔄</span> סנכרן עכשיו';
+      }
+    }, 4000);
+  } catch(e) {
+    btn.disabled = false;
+    btn.innerHTML = '<span>🔄</span> סנכרן עכשיו';
+  }
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────
+function renderAll(d, foodData) {
+  const month = d.month || currentMonth();
+  document.getElementById('h-month').textContent = monthLabel(month);
+
+  const sales_vat = d.total_sales_vat || 0;
+  const sales_net = d.total_sales_net || 0;
+  const diners    = d.diners || 0;
+  const labor     = d.labor_cost || 0;          // net_labor (עלות מעסיק − טיפים)
+  const labor_gross = d.labor_gross || labor;   // עלות מעסיק
+  const tips      = d.tips || 0;
+  const orders    = d.order_count || 0;
+  const days      = d.days_collected || 0;
+  const hours     = d.labor_hours || 0;
+
+  // Food from live fetch or entity cache
+  const food_net  = (foodData && foodData.food_cost_net) ? foodData.food_cost_net : (d.food_cost || 0);
+  const vendors   = (foodData && foodData.vendors) ? foodData.vendors : tryParseVendors(d.vendors);
+
+  // Calcs
+  const avg_per_diner  = diners > 0 ? sales_vat / diners : 0;
+  const avg_ticket     = orders > 0 ? sales_net / orders : 0;
+  const labor_pct      = sales_net > 0 ? labor / sales_net * 100 : 0;
+  const food_pct       = sales_net > 0 ? food_net / sales_net * 100 : 0;
+  const tips_pct       = sales_vat > 0 ? tips / sales_vat * 100 : 0;
+  const total_pct      = labor_pct + food_pct;
+
+  // HERO
+  const [hClass, hEmoji] = heroColor(total_pct);
+  const heroEl = document.getElementById('hero');
+  heroEl.className = 'hero ' + hClass;
+  document.getElementById('total-pct').textContent = total_pct.toFixed(1) + '%';
+  document.getElementById('hero-sub').textContent  = 'שכר ' + labor_pct.toFixed(1) + '% + מזון ' + food_pct.toFixed(1) + '%';
+  document.getElementById('hero-emoji').textContent = hEmoji;
+
+  // KPI row 1
+  document.getElementById('k-sales-vat').textContent = fmt(sales_vat);
+  document.getElementById('k-sales-net').textContent = fmt(sales_net);
+  document.getElementById('k-diners').textContent    = diners > 0 ? diners.toLocaleString('he-IL') : '—';
+  document.getElementById('k-days').textContent      = days + ' ימים';
+  document.getElementById('k-avg').textContent       = avg_per_diner > 0 ? fmt(avg_per_diner) : '—';
+
+  // KPI row 2
+  document.getElementById('k-labor').textContent     = fmt(labor);
+  document.getElementById('k-labor-pct').textContent = fmtP(labor_pct) + ' מנטו';
+  document.getElementById('k-food').textContent      = fmt(food_net);
+  document.getElementById('k-food-pct').textContent  = fmtP(food_pct) + ' מנטו';
+  document.getElementById('k-tips').textContent      = fmt(tips);
+  document.getElementById('k-tips-pct').textContent  = fmtP(tips_pct) + ' מברוטו';
+  document.getElementById('k-orders').textContent    = orders > 0 ? orders.toLocaleString('he-IL') : '—';
+  document.getElementById('k-avg-ticket').textContent = orders > 0 ? fmt(avg_ticket) + ' לעסקה' : '—';
+
+  // Bars (max 60% = full bar)
+  bar('bar-labor', labor_pct / 60 * 100, labor_pct < 25 ? 'green' : labor_pct < 32 ? 'orange' : 'red');
+  bar('bar-food',  food_pct  / 60 * 100, food_pct  < 25 ? 'green' : food_pct  < 32 ? 'orange' : 'red');
+  bar('bar-tips',  Math.min(tips_pct * 5, 100), 'pink');
+
+  // Cost breakdown
+  document.getElementById('cr-labor-gross').textContent = fmt(labor_gross);
+  document.getElementById('cr-tips').textContent        = fmt(tips);
+  document.getElementById('cr-labor-net').textContent   = fmt(labor);
+  document.getElementById('cr-food').textContent        = fmt(food_net);
+  document.getElementById('cr-total-pct').textContent   = fmtP(total_pct);
+
+  // Labor detail
+  document.getElementById('ld-hours').textContent     = hours > 0 ? hours + ' ש"ע' : '—';
+  document.getElementById('ld-labor-pct').textContent = fmtP(labor_pct);
+  document.getElementById('ld-tips-pct').textContent  = fmtP(tips_pct);
+  document.getElementById('ld-avg').textContent       = avg_per_diner > 0 ? fmt(avg_per_diner) : '—';
+
+  // Suppliers
+  renderVendors(vendors);
+
+  // Footer
+  const upd = d.last_updated ? new Date(d.last_updated).toLocaleString('he-IL') : '—';
+  document.getElementById('last-upd').textContent = 'עדכון אחרון: ' + upd;
+  localStorage.setItem('gr_last_upd', d.last_updated || '');
+
+  // Show main
+  document.getElementById('main').style.display = 'block';
+}
+
+function renderVendors(vendors) {
+  const grid = document.getElementById('sup-grid');
+  if(!vendors || vendors.length === 0) {
+    grid.innerHTML = '<div class="no-data">אין נתוני ספקים</div>';
     return;
   }
-
-  vendors.sort((a, b) => (b.net || b.amount || 0) - (a.net || a.amount || 0));
-
-  grid.innerHTML = '<div class="sup-grid">' + vendors.map(v => {
-    const net = v.net || v.amount || 0;
-    const count = v.invoice_count || v.count || v.invoices || '';
-    const lastD = v.last_date ? v.last_date.substring(5).split('-').reverse().join('/') : '';
-    return `<div class="sup-box">
+  grid.innerHTML = vendors.slice(0,12).map(v => `
+    <div class="sup-box">
       <div class="sl">${v.name || '—'}</div>
-      <div class="sv">₪${Math.round(net).toLocaleString('he-IL')}</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px;">
-        ${count ? `<span class="sc">${count} חשב'</span>` : '<span></span>'}
-        ${lastD ? `<span style="font-size:8px;color:#bbb;">${lastD}</span>` : ''}
-      </div>
-    </div>`;
-  }).join('') + '</div>';
+      <div class="sv">${fmt(v.net || v.amount)}</div>
+      <div class="sc">${v.count || v.invoice_count || ''} חשבוניות</div>
+    </div>
+  `).join('');
+}
 
-  // Total
-  const totalNet = vendors.reduce((s, v) => s + (v.net || v.amount || 0), 0);
-  const totalGross = vendors.reduce((s, v) => s + (v.gross || (v.net || v.amount || 0) * 1.18), 0);
-  const supTotalEl = document.getElementById('sup-total');
-  if (supTotalEl) {
-    supTotalEl.innerHTML = `סה"כ כולל מע"מ: <strong style="color:#0a2342">₪${Math.round(totalGross).toLocaleString('he-IL')}</strong> &nbsp;·&nbsp; נטו ללא מע"מ: <strong style="color:#ef4444">₪${Math.round(totalNet).toLocaleString('he-IL')}</strong>`;
+function tryParseVendors(vendors) {
+  if(!vendors) return [];
+  if(Array.isArray(vendors)) return vendors;
+  try { return JSON.parse(vendors); } catch(e) { return []; }
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────
+async function loadFoodAndRender(grData) {
+  try {
+    const foodData = await fetchFoodCost();
+    renderAll(grData, foodData);
+  } catch(e) {
+    console.warn('Food cost live fetch failed, using cache', e);
+    renderAll(grData, null);
   }
-  renderInvoiceList();
 }
 
-function renderInvoiceList() {
-  const toggle = document.getElementById('inv-list-toggle');
-  const tbody = document.getElementById('inv-list-body');
-  const invs = window._grAllInvoices || [];
-  if (!toggle || !tbody || invs.length === 0) return;
-  toggle.style.display = 'inline-block';
-  toggle.textContent = '▼ הצג את כל החשבוניות (' + invs.length + ')';
-  tbody.innerHTML = invs.map(r => {
-    const gross = Number(r.invoice_total) || 0;
-    const net = r.is_zero_vat ? gross : gross / 1.18;
-    const d = (r.invoice_date||'').substring(5).split('-').reverse().join('/');
-    return `<tr>
-      <td class="inv-date">${d}</td>
-      <td class="inv-sup">${r.supplier_name||'—'}</td>
-      <td class="inv-num">${r.invoice_number||'—'}</td>
-      <td class="inv-amt">₪${Math.round(net).toLocaleString('he-IL')}</td>
-      <td style="color:#888;font-size:10px;">₪${Math.round(gross).toLocaleString('he-IL')}</td>
-    </tr>`;
-  }).join('');
-}
-
-function toggleInvList() {
-  const wrap = document.getElementById('inv-list-wrap');
-  const toggle = document.getElementById('inv-list-toggle');
-  const invs = window._grAllInvoices || [];
-  if (!wrap) return;
-  const open = wrap.style.display !== 'none';
-  wrap.style.display = open ? 'none' : 'block';
-  toggle.textContent = (open ? '▼ הצג את כל החשבוניות' : '▲ הסתר חשבוניות') + ' (' + invs.length + ')';
-}
-
-const GR_TRIGGER_URL = 'https://rosa-6d8ebb9e.base44.app/api/functions/grTriggerSync';
-let _grSyncPolling = null;
-let _grLastSalesVat = null;
-
-async function syncNow() {
-  const btn = document.getElementById('syncBtn');
-  if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳</span> מסנכרן...'; }
-
-  // Capture current sales to detect change
+async function init() {
+  setLoading('טוען נתוני מכירות...');
+  document.getElementById('main').style.display = 'none';
   try {
-    const cur = await fetch('https://rosa-6d8ebb9e.base44.app/functions/grBeePortSync', {method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).then(r=>r.json()).catch(()=>({}));
-    _grLastSalesVat = cur.sales_gross || null;
-  } catch(_) {}
-
-  // Trigger agent
-  try {
-    await fetch(GR_TRIGGER_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, cache: 'no-store' });
-  } catch(_) {}
-
-  // Show status
-  const lt = document.querySelector('.loading-text');
-  if (lt) lt.textContent = '⏳ מסנכרן נתוני Guest Room... (~30 שניות)';
-
-  // Poll every 8 seconds, up to 3 minutes
-  if (_grSyncPolling) clearInterval(_grSyncPolling);
-  let attempts = 0;
-  _grSyncPolling = setInterval(async () => {
-    attempts++;
-    try {
-      const fresh = await fetch('https://rosa-6d8ebb9e.base44.app/functions/grBeePortSync', {method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).then(r=>r.json()).catch(()=>({}));
-      if (fresh.sales_gross && fresh.sales_gross !== _grLastSalesVat) {
-        clearInterval(_grSyncPolling);
-        _grSyncPolling = null;
-        if (btn) { btn.disabled = false; btn.innerHTML = '<span>🔄</span> סנכרן עכשיו'; }
-        if (lt) lt.textContent = '';
-        await loadDashboard();
-        return;
-      }
-    } catch(_) {}
-    if (attempts >= 22) {
-      clearInterval(_grSyncPolling);
-      if (btn) { btn.disabled = false; btn.innerHTML = '<span>🔄</span> סנכרן עכשיו'; }
-      if (lt) lt.textContent = 'הסנכרון לוקח יותר מהצפוי — נסה שוב בעוד דקה.';
-    }
-  }, 8000);
+    const [grData] = await Promise.all([fetchGRData()]);
+    setLoading('טוען עלות מזון מ-Smart Basic 2...');
+    await loadFoodAndRender(grData);
+  } catch(e) {
+    console.error('Init failed', e);
+    document.getElementById('main').innerHTML = '<div class="no-data">⚠️ שגיאה בטעינת נתונים<br><small>' + e.message + '</small></div>';
+    document.getElementById('main').style.display = 'block';
+  } finally {
+    hideLoading();
+  }
 }
 
-function showSyncErrorPopup(msg) {
-  // Never show sync error if paywall is still visible
-  const paywall = document.getElementById('paywall');
-  if (paywall && paywall.style.display !== 'none') return;
-  const popup = document.getElementById('sync-error-popup');
-  if (msg) document.getElementById('sep-msg').innerHTML = msg;
-  popup.classList.add('show');
+// ── BOOT ─────────────────────────────────────────────────────────────
+if(localStorage.getItem('gr_access') === '1') {
+  document.getElementById('paywall').style.display = 'none';
+  init();
 }
-function dismissSyncPopup() {
-  document.getElementById('sync-error-popup').classList.remove('show');
-}
-function dismissPopupAndSync() {
-  dismissSyncPopup();
-  syncNow();
-}
-loadDashboard();
 </script>
 </body>
 </html>
