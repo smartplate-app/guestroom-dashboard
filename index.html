@@ -391,7 +391,7 @@ async function fetchGRData() {
     sales_net:  entity.total_sales_net  || sync.sales_net  || 0,
     diners:     entity.diners           || sync.diners     || 0,
     avg_per_diner: entity.diners > 0 ? Math.round((entity.total_sales_vat || 0) / entity.diners) : (entity.avg_per_diner || sync.avg_per_diner || 0),
-    tips:       entity.tips             || sync.tips       || 0,
+    tips:       sync.tips               || 0,  // ONLY from ShiftOrganizer — never from entity/BeePort
     labor_cost: sync.labor_cost         || entity.labor_cost || 0,
     labor_pct:  sync.labor_pct          || entity.labor_pct  || 0,
     total_pct:  sync.total_pct          || entity.total_cost_pct || 0,
