@@ -360,9 +360,46 @@ function monthLabel(m) {
 const ROSA = 'https://rosa-6d8ebb9e.base44.app/api/functions';
 
 async function fetchGRData() {
-  const r = await fetch(ROSA + '/grSync', { method:'GET' });
-  if(!r.ok) throw new Error('grSync failed ' + r.status);
-  return r.json();
+  // 1. Read entity from Rosa — source of truth for sales/diners (BeePort verified)
+  const month = currentMonth();
+  let entity = {};
+  try {
+    const er = await fetch('https://rosa-6d8ebb9e.base44.app/api/entities/GuestRoomMonthlyData/filter', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ month })
+    });
+    if (er.ok) {
+      const ed = await er.json();
+      const recs = Array.isArray(ed) ? ed : (ed.records || []);
+      entity = recs[0] || {};
+    }
+  } catch(_) {}
+
+  // 2. grSync — labor/tips from ShiftOrganizer
+  let sync = {};
+  try {
+    const r = await fetch(ROSA + '/grSync', { method:'GET' });
+    if(r.ok) sync = await r.json();
+  } catch(_) {}
+
+  // Merge: entity is source of truth for sales/diners, grSync for labor
+  return {
+    ok: true,
+    month,
+    sales_vat:  entity.total_sales_vat  || sync.sales_vat  || 0,
+    sales_net:  entity.total_sales_net  || sync.sales_net  || 0,
+    diners:     entity.diners           || sync.diners     || 0,
+    avg_per_diner: entity.diners > 0 ? Math.round((entity.total_sales_vat || 0) / entity.diners) : (entity.avg_per_diner || sync.avg_per_diner || 0),
+    tips:       entity.tips             || sync.tips       || 0,
+    labor_cost: sync.labor_cost         || entity.labor_cost || 0,
+    labor_pct:  sync.labor_pct          || entity.labor_pct  || 0,
+    total_pct:  sync.total_pct          || entity.total_cost_pct || 0,
+    days_collected: entity.days_collected || sync.days_collected || 0,
+    order_count: entity.order_count     || sync.order_count || 0,
+    shift_error: sync.shift_error       || null,
+    workers:    sync.workers            || entity.workers   || [],
+  };
 }
 
 async function fetchFoodCost() {
