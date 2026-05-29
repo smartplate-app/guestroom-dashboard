@@ -403,16 +403,16 @@ async function fetchGRData() {
 }
 
 async function fetchFoodCost() {
-  // Live fetch from Smart Basic 2 — paginated, filter by guestroom@smartplate.org, current month
+  // Live fetch from Smart Basic 2 via Rosa proxy (avoids browser auth issues)
   const APP_ID = '699c4d19592434b7f867b2c6';
-  const BASE   = 'https://app.base44.com/api/apps/' + APP_ID + '/entities/SupplyReceipt/filter';
+  const BASE   = 'https://rosa-6d8ebb9e.base44.app/api/apps/' + APP_ID + '/entities/SupplyReceipt/filter';
   const month  = currentMonth();
   let skip = 0, all = [];
   while(true) {
     const r = await fetch(BASE + '?skip=' + skip + '&limit=500', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ created_by: 'guestroom@smartplate.org' })
+      body: JSON.stringify({ created_by: 'guestroom@smartplate.org', is_refund: false })
     });
     if(!r.ok) break;
     const d = await r.json();
