@@ -450,8 +450,8 @@ function renderAll(d, foodData) {
   const month = d.month || currentMonth();
   document.getElementById('h-month').textContent = monthLabel(month);
 
-  const sales_vat = d.total_sales_vat || 0;
-  const sales_net = d.total_sales_net || 0;
+  const sales_vat = d.total_sales_vat || d.sales_vat || 0;
+  const sales_net = d.total_sales_net || d.sales_net || 0;
   const diners    = d.diners || 0;
   const labor     = d.labor_cost || 0;          // net_labor (עלות מעסיק − טיפים)
   const labor_gross = d.labor_gross || labor;   // עלות מעסיק
