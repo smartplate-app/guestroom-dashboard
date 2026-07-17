@@ -368,17 +368,12 @@ async function init() {
   document.getElementById('no-data-msg').style.display = 'none';
   document.getElementById('tabs-container').style.display = 'flex';
   
-  try {
-    const r = await fetch('https://rosa-6d8ebb9e.base44.app/api/apps/69b19dfe2dea6d186d8ebb9e/entities/GuestRoomMonthlyData/query', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ limit: 12, sort: "-month" })
-    });
-    if(r.ok) {
-      const res = await r.json();
-      allData = res.records || [];
-    }
-  } catch(e) { console.error(e); }
+
+  allData = [
+    {"month": "2026-06", "total_sales_vat": 93730, "total_sales_net": 79432.2, "labor_cost": 28858.79, "labor_pct": 36.33, "diners": 1028, "days_collected": 30},
+    {"month": "2026-05", "total_sales_vat": 110161, "total_sales_net": 93356.78, "labor_cost": 24464.93, "labor_pct": 26.2, "diners": 1124, "days_collected": 31}
+  ];
+
 
   // Sync July Live (MTD)
   try {
@@ -431,6 +426,7 @@ function switchMonth(m) {
   }
 }
 
+function num(n) { return Math.round(n||0).toLocaleString('en-US'); }
 function render(d, vArr) {
   document.getElementById('h-month').innerText = monthLabel(d.month);
   
