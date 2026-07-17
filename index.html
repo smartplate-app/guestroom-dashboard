@@ -46,6 +46,12 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#0d0d1a; co
 @keyframes spin { to { transform:rotate(360deg); } }
 .loading-text { color:rgba(255,255,255,0.4); font-size:13px; }
 
+
+/* ── TABS ── */
+.tabs { display:flex; gap:4px; padding:16px 28px 0; border-bottom:1px solid rgba(255,255,255,0.1); background:#0d0d1a; overflow-x:auto; }
+.tab-btn { background:none; border:none; color:rgba(255,255,255,0.4); font-size:14px; font-weight:600; padding:10px 16px; cursor:pointer; font-family:inherit; white-space:nowrap; border-bottom:2px solid transparent; }
+.tab-btn.active { color:white; border-bottom-color:#7c3aed; }
+
 /* ── HEADER ── */
 .header {
   background:#16162a; border-bottom:1px solid rgba(255,255,255,0.07);
@@ -161,9 +167,17 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#0d0d1a; co
     <div class="h-logo">Guest <span>Room</span></div>
     <div class="h-month" id="h-month">—</div>
   </div>
-  <button class="sync-btn" id="sync-btn" onclick="triggerSync()">
+  <button class="sync-btn" id="sync-btn" onclick="triggerSync()" style="display:none">
     <span>🔄</span> סנכרן עכשיו
   </button>
+</div>
+
+
+<!-- TABS -->
+<div class="tabs" id="tabs-container" style="display:none">
+  <button class="tab-btn active" id="tab-2026-07" onclick="switchMonth('2026-07')">יולי (MTD)</button>
+  <button class="tab-btn" id="tab-2026-06" onclick="switchMonth('2026-06')">יוני</button>
+  <button class="tab-btn" id="tab-2026-05" onclick="switchMonth('2026-05')">מאי</button>
 </div>
 
 <!-- MAIN -->
@@ -218,12 +232,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#0d0d1a; co
       <div class="kpi-sub" id="k-food-pct">—</div>
       <div class="bar"><div class="bf red" id="bar-food" style="width:0%"></div></div>
     </div>
-    <div class="kpi tips">
-      <div class="kpi-lbl">טיפים</div>
-      <div class="kpi-val" id="k-tips">—</div>
-      <div class="kpi-sub" id="k-tips-pct">—</div>
-      <div class="bar"><div class="bf pink" id="bar-tips" style="width:0%"></div></div>
-    </div>
+    
     <div class="kpi orders">
       <div class="kpi-lbl">הזמנות</div>
       <div class="kpi-val" id="k-orders">—</div>
@@ -246,7 +255,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#0d0d1a; co
         <div class="l">טיפים</div>
         <div class="src">Shift Organizer</div>
       </div>
-      <div class="v" id="cr-tips">—</div>
+      
     </div>
     <div class="cr">
       <div>
@@ -293,7 +302,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#0d0d1a; co
         </div>
         <div class="cr">
           <div><div class="l">% טיפים מברוטו</div></div>
-          <div class="v" id="ld-tips-pct">—</div>
+          
         </div>
         <div class="cr">
           <div><div class="l">ממוצע לסועד</div></div>
@@ -359,257 +368,129 @@ function monthLabel(m) {
 // ── ROSA API ──────────────────────────────────────────────────────────
 const ROSA = 'https://rosa-6d8ebb9e.base44.app/api/functions';
 
-async function fetchGRData() {
-  // 1. Read entity from Rosa — source of truth for sales/diners (BeePort verified)
-  const month = currentMonth();
-  let entity = {};
-  try {
-    const er = await fetch('https://rosa-6d8ebb9e.base44.app/api/entities/GuestRoomMonthlyData/filter', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ month })
-    });
-    if (er.ok) {
-      const ed = await er.json();
-      const recs = Array.isArray(ed) ? ed : (ed.records || []);
-      entity = recs[0] || {};
-    }
-  } catch(_) {}
 
-  // 2. grSync — labor/tips from ShiftOrganizer
-  let sync = {};
-  try {
-    const r = await fetch(ROSA + '/grSync', { method:'GET' });
-    if(r.ok) sync = await r.json();
-  } catch(_) {}
-
-  // Merge: entity is source of truth for sales/diners, grSync for labor
-  return {
-    ok: true,
-    month,
-    sales_vat:  entity.total_sales_vat  || sync.sales_vat  || 0,
-    sales_net:  entity.total_sales_net  || sync.sales_net  || 0,
-    diners:     entity.diners           || sync.diners     || 0,
-    avg_per_diner: entity.diners > 0 ? Math.round((entity.total_sales_vat || 0) / entity.diners) : (entity.avg_per_diner || sync.avg_per_diner || 0),
-    tips:       sync.tips               || 0,  // ONLY from ShiftOrganizer — never from entity/BeePort
-    labor_cost: sync.labor_cost         || entity.labor_cost || 0,
-    labor_pct:  sync.labor_pct          || entity.labor_pct  || 0,
-    total_pct:  sync.total_pct          || entity.total_cost_pct || 0,
-    days_collected: entity.days_collected || sync.days_collected || 0,
-    order_count: entity.order_count     || sync.order_count || 0,
-    shift_error: sync.shift_error       || null,
-    workers:    sync.workers            || entity.workers   || [],
-  };
-}
-
-async function fetchFoodCost() {
-  // Live fetch from Smart Basic 2 via Rosa proxy (avoids browser auth issues)
-  const APP_ID = '699c4d19592434b7f867b2c6';
-  const BASE   = 'https://rosa-6d8ebb9e.base44.app/api/apps/' + APP_ID + '/entities/SupplyReceipt/filter';
-  const month  = currentMonth();
-  let skip = 0, all = [];
-  while(true) {
-    const r = await fetch(BASE + '?skip=' + skip + '&limit=500', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ created_by: 'guestroom@smartplate.org', is_refund: false })
-    });
-    if(!r.ok) break;
-    const d = await r.json();
-    const rows = d.records || d || [];
-    all.push(...rows);
-    if(!d.has_more) break;
-    skip += 500;
-  }
-  // Filter current month, exclude refunds and zero totals
-  const filtered = all.filter(r =>
-    r.invoice_date && r.invoice_date.startsWith(month) &&
-    !r.is_refund && r.invoice_total > 0
-  );
-  // Dedup by (supplier_name, invoice_number) — keep MAX invoice_total
-  const map = {};
-  for(const r of filtered) {
-    const key = (r.supplier_name||'') + '|' + (r.invoice_number||'');
-    if(!map[key] || r.invoice_total > map[key].invoice_total) map[key] = r;
-  }
-  const deduped = Object.values(map);
-  // Aggregate by supplier
-  const smap = {};
-  let total_net = 0;
-  for(const r of deduped) {
-    const net = r.is_zero_vat ? r.invoice_total : r.invoice_total / 1.18;
-    total_net += net;
-    if(!smap[r.supplier_name]) smap[r.supplier_name] = { name:r.supplier_name, net:0, gross:0, count:0 };
-    smap[r.supplier_name].net   += net;
-    smap[r.supplier_name].gross += r.invoice_total;
-    smap[r.supplier_name].count++;
-  }
-  const vendors = Object.values(smap).sort((a,b) => b.net - a.net);
-  return { food_cost_net: total_net, vendors };
-}
-
-// ── TRIGGER SYNC ─────────────────────────────────────────────────────
-async function triggerSync() {
-  const btn = document.getElementById('sync-btn');
-  btn.disabled = true;
-  btn.innerHTML = '<span>⏳</span> מסנכרן...';
-  try {
-    await fetch(ROSA + '/grTriggerSync', { method:'POST', headers:{'Content-Type':'application/json'}, body:'{}' });
-    // Poll every 4 seconds for up to 90s
-    let tries = 0;
-    const poll = setInterval(async () => {
-      tries++;
-      try {
-        const d = await fetchGRData();
-        const prev = localStorage.getItem('gr_last_upd');
-        if(d.last_updated && d.last_updated !== prev) {
-          clearInterval(poll);
-          renderAll(d, null); // food will reload separately
-          loadFoodAndRender(d);
-          btn.disabled = false;
-          btn.innerHTML = '<span>🔄</span> סנכרן עכשיו';
-        }
-      } catch(e){}
-      if(tries > 22) {
-        clearInterval(poll);
-        btn.disabled = false;
-        btn.innerHTML = '<span>🔄</span> סנכרן עכשיו';
-      }
-    }, 4000);
-  } catch(e) {
-    btn.disabled = false;
-    btn.innerHTML = '<span>🔄</span> סנכרן עכשיו';
-  }
-}
-
-// ── RENDER ────────────────────────────────────────────────────────────
-function renderAll(d, foodData) {
-  const month = d.month || currentMonth();
-  document.getElementById('h-month').textContent = monthLabel(month);
-
-  const sales_vat = d.total_sales_vat || d.sales_vat || 0;
-  const sales_net = d.total_sales_net || d.sales_net || 0;
-  const diners    = d.diners || 0;
-  const labor     = d.labor_cost || 0;          // net_labor (עלות מעסיק − טיפים)
-  const labor_gross = d.labor_gross || labor;   // עלות מעסיק
-  const tips      = d.tips || 0;
-  const orders    = d.order_count || 0;
-  const days      = d.days_collected || 0;
-  const hours     = d.labor_hours || 0;
-
-  // Food from live fetch or entity cache
-  const food_net  = (foodData && foodData.food_cost_net) ? foodData.food_cost_net : (d.food_cost || 0);
-  const vendors   = (foodData && foodData.vendors) ? foodData.vendors : tryParseVendors(d.vendors);
-
-  // Calcs
-  const avg_per_diner  = diners > 0 ? sales_vat / diners : 0;
-  const avg_ticket     = orders > 0 ? sales_net / orders : 0;
-  const labor_pct      = sales_net > 0 ? labor / sales_net * 100 : 0;
-  const food_pct       = sales_net > 0 ? food_net / sales_net * 100 : 0;
-  const tips_pct       = sales_vat > 0 ? tips / sales_vat * 100 : 0;
-  const total_pct      = labor_pct + food_pct;
-
-  // HERO
-  const [hClass, hEmoji] = heroColor(total_pct);
-  const heroEl = document.getElementById('hero');
-  heroEl.className = 'hero ' + hClass;
-  document.getElementById('total-pct').textContent = total_pct.toFixed(1) + '%';
-  document.getElementById('hero-sub').textContent  = 'שכר ' + labor_pct.toFixed(1) + '% + מזון ' + food_pct.toFixed(1) + '%';
-  document.getElementById('hero-emoji').textContent = hEmoji;
-
-  // KPI row 1
-  document.getElementById('k-sales-vat').textContent = fmt(sales_vat);
-  document.getElementById('k-sales-net').textContent = fmt(sales_net);
-  document.getElementById('k-diners').textContent    = diners > 0 ? diners.toLocaleString('he-IL') : '—';
-  document.getElementById('k-days').textContent      = days + ' ימים';
-  document.getElementById('k-avg').textContent       = avg_per_diner > 0 ? fmt(avg_per_diner) : '—';
-
-  // KPI row 2
-  document.getElementById('k-labor').textContent     = fmt(labor);
-  document.getElementById('k-labor-pct').textContent = fmtP(labor_pct) + ' מנטו';
-  document.getElementById('k-food').textContent      = fmt(food_net);
-  document.getElementById('k-food-pct').textContent  = fmtP(food_pct) + ' מנטו';
-  document.getElementById('k-tips').textContent      = fmt(tips);
-  document.getElementById('k-tips-pct').textContent  = fmtP(tips_pct) + ' מברוטו';
-  document.getElementById('k-orders').textContent    = orders > 0 ? orders.toLocaleString('he-IL') : '—';
-  document.getElementById('k-avg-ticket').textContent = orders > 0 ? fmt(avg_ticket) + ' לעסקה' : '—';
-
-  // Bars (max 60% = full bar)
-  bar('bar-labor', labor_pct / 60 * 100, labor_pct < 25 ? 'green' : labor_pct < 32 ? 'orange' : 'red');
-  bar('bar-food',  food_pct  / 60 * 100, food_pct  < 25 ? 'green' : food_pct  < 32 ? 'orange' : 'red');
-  bar('bar-tips',  Math.min(tips_pct * 5, 100), 'pink');
-
-  // Cost breakdown
-  document.getElementById('cr-labor-gross').textContent = fmt(labor_gross);
-  document.getElementById('cr-tips').textContent        = fmt(tips);
-  document.getElementById('cr-labor-net').textContent   = fmt(labor);
-  document.getElementById('cr-food').textContent        = fmt(food_net);
-  document.getElementById('cr-total-pct').textContent   = fmtP(total_pct);
-
-  // Labor detail
-  document.getElementById('ld-hours').textContent     = hours > 0 ? hours + ' ש"ע' : '—';
-  document.getElementById('ld-labor-pct').textContent = fmtP(labor_pct);
-  document.getElementById('ld-tips-pct').textContent  = fmtP(tips_pct);
-  document.getElementById('ld-avg').textContent       = avg_per_diner > 0 ? fmt(avg_per_diner) : '—';
-
-  // Suppliers
-  renderVendors(vendors);
-
-  // Footer
-  const upd = d.last_updated ? new Date(d.last_updated).toLocaleString('he-IL') : '—';
-  document.getElementById('last-upd').textContent = 'עדכון אחרון: ' + upd;
-  localStorage.setItem('gr_last_upd', d.last_updated || '');
-
-  // Show main
-  document.getElementById('main').style.display = 'block';
-}
-
-function renderVendors(vendors) {
-  const grid = document.getElementById('sup-grid');
-  if(!vendors || vendors.length === 0) {
-    grid.innerHTML = '<div class="no-data">אין נתוני ספקים</div>';
-    return;
-  }
-  grid.innerHTML = vendors.slice(0,12).map(v => `
-    <div class="sup-box">
-      <div class="sl">${v.name || '—'}</div>
-      <div class="sv">${fmt(v.net || v.amount)}</div>
-      <div class="sc">${v.count || v.invoice_count || ''} חשבוניות</div>
-    </div>
-  `).join('');
-}
-
-function tryParseVendors(vendors) {
-  if(!vendors) return [];
-  if(Array.isArray(vendors)) return vendors;
-  try { return JSON.parse(vendors); } catch(e) { return []; }
-}
-
-// ── INIT ─────────────────────────────────────────────────────────────
-async function loadFoodAndRender(grData) {
-  try {
-    const foodData = await fetchFoodCost();
-    renderAll(grData, foodData);
-  } catch(e) {
-    console.warn('Food cost live fetch failed, using cache', e);
-    renderAll(grData, null);
-  }
-}
+let allData = [];
 
 async function init() {
-  setLoading('טוען נתוני מכירות...');
+  setLoading('טוען נתונים...');
   document.getElementById('main').style.display = 'none';
+  document.getElementById('tabs-container').style.display = 'flex';
+  
   try {
-    const [grData] = await Promise.all([fetchGRData()]);
-    setLoading('טוען עלות מזון מ-Smart Basic 2...');
-    await loadFoodAndRender(grData);
-  } catch(e) {
-    console.error('Init failed', e);
-    document.getElementById('main').innerHTML = '<div class="no-data">⚠️ שגיאה בטעינת נתונים<br><small>' + e.message + '</small></div>';
+    const r = await fetch('https://rosa-6d8ebb9e.base44.app/api/apps/69b19dfe2dea6d186d8ebb9e/entities/GuestRoomMonthlyData/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ limit: 12, sort: "-month" })
+    });
+    if(r.ok) {
+      const res = await r.json();
+      allData = res.records || [];
+    }
+  } catch(e) { console.error(e); }
+
+  // Sync July Live (MTD)
+  try {
+    const live = await fetch('https://rosa-6d8ebb9e.base44.app/api/functions/grSync', { method:'GET' });
+    if(live.ok) {
+      const liveData = await live.json();
+      if(liveData && liveData.sales_vat) {
+         let mtd = allData.find(x => x.month === '2026-07');
+         if(!mtd) { mtd = {month: '2026-07'}; allData.push(mtd); }
+         mtd.total_sales_vat = liveData.sales_vat;
+         mtd.total_sales_net = liveData.sales_net;
+         // grSync labor is returning 0, fallback to cache if available
+         mtd.labor_cost = liveData.labor_cost || mtd.labor_cost;
+         mtd.labor_pct = liveData.labor_pct || mtd.labor_pct;
+         mtd.food_cost = liveData.food_cost || mtd.food_cost;
+         mtd.food_cost_pct = liveData.food_pct || mtd.food_cost_pct;
+         mtd.total_cost_pct = liveData.total_pct || mtd.total_cost_pct;
+         mtd.diners = liveData.diners || mtd.diners;
+         mtd.avg_per_diner = liveData.avg_per_diner || mtd.avg_per_diner;
+         mtd.days_collected = liveData.days_collected || mtd.days_collected;
+         if(liveData.vendors && liveData.vendors.length > 0) {
+             mtd.vendors = JSON.stringify(liveData.vendors);
+         }
+      }
+    }
+  } catch(e) {}
+  
+  hideLoading();
+  switchMonth('2026-07');
+}
+
+function switchMonth(m) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('tab-' + m);
+  if(btn) btn.classList.add('active');
+  
+  const d = allData.find(x => x.month === m);
+  if(d) {
     document.getElementById('main').style.display = 'block';
-  } finally {
-    hideLoading();
+    let vArr = [];
+    try {
+        if(typeof d.vendors === 'string') vArr = JSON.parse(d.vendors);
+        else if(Array.isArray(d.vendors)) vArr = d.vendors;
+    } catch(e){}
+    render(d, vArr);
+  } else {
+    document.getElementById('main').innerHTML = '<div class="no-data">אין נתונים לחודש זה</div>';
+    document.getElementById('main').style.display = 'block';
   }
+}
+
+function render(d, vArr) {
+  document.getElementById('h-month').innerText = monthLabel(d.month);
+  
+  const sales_vat = d.total_sales_vat || 0;
+  const sales_net = d.total_sales_net || 0;
+  const lb_cost = d.labor_cost || 0;
+  const fd_cost = d.food_cost || 0;
+  const lb_pct = d.labor_pct || 0;
+  const fd_pct = d.food_cost_pct || 0;
+  const tot_pct = d.total_cost_pct || Math.round((lb_pct + fd_pct)*10)/10;
+  
+  const days = d.days_collected || 0;
+  const diners = d.diners || 0;
+  const avg = d.avg_per_diner || 0;
+  const ords = d.order_count || 0;
+
+  // Hero
+  document.getElementById('total-pct').innerText = tot_pct.toFixed(1) + '%';
+  document.getElementById('hero-sub').innerText = num(lb_cost + fd_cost) + ' ₪';
+  
+  const hero = document.getElementById('hero');
+  const hEmo = document.getElementById('hero-emoji');
+  hero.className = 'hero ' + (tot_pct > 50 ? 'red' : tot_pct > 45 ? 'orange' : 'green');
+  hEmo.innerText = tot_pct > 50 ? '🚨' : tot_pct > 45 ? '⚠️' : '✅';
+
+  // KPIs
+  document.getElementById('k-sales').innerText = num(sales_net);
+  document.getElementById('k-labor').innerText = num(lb_cost);
+  document.getElementById('k-labor-pct').innerText = lb_pct.toFixed(1) + '%';
+  document.getElementById('k-food').innerText = num(fd_cost);
+  document.getElementById('k-food-pct').innerText = fd_pct.toFixed(1) + '%';
+  
+  // Progress bars
+  document.getElementById('bar-labor').style.width = Math.min(lb_pct, 100) + '%';
+  document.getElementById('bar-food').style.width  = Math.min(fd_pct, 100) + '%';
+
+  // Details
+  document.getElementById('cr-sales').innerText = num(sales_vat) + ' ₪';
+  document.getElementById('cr-net').innerText   = num(sales_net) + ' ₪';
+  document.getElementById('cr-diners').innerText= num(diners);
+  document.getElementById('cr-avg').innerText   = num(avg) + ' ₪';
+  document.getElementById('cr-days').innerText  = days;
+  
+  // Vendors
+  let supHTML = '';
+  const vendors = vArr || [];
+  vendors.forEach(v => {
+    supHTML += `<div class="sup-box">
+      <div class="sv">${num(v.net || v.amount || 0)} ₪</div>
+      <div class="sl" title="${(v.name || v.supplier || '')}">${(v.name || v.supplier || '')}</div>
+    </div>`;
+  });
+  document.getElementById('suppliers-grid').innerHTML = supHTML || '<div class="no-data" style="grid-column:span 3;padding:10px">לא נמשכו ספקים לחודש זה</div>';
 }
 
 // ── BOOT ─────────────────────────────────────────────────────────────
