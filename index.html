@@ -437,10 +437,7 @@ function render(d, vArr) {
   const sales_vat = d.total_sales_vat || 0;
   const sales_net = d.total_sales_net || 0;
   const lb_cost = d.labor_cost || 0;
-  const fd_cost = d.food_cost || 0;
   const lb_pct = d.labor_pct || 0;
-  const fd_pct = d.food_cost_pct || 0;
-  const tot_pct = d.total_cost_pct || Math.round((lb_pct + fd_pct)*10)/10;
   
   const days = d.days_collected || 0;
   const diners = d.diners || 0;
@@ -456,23 +453,32 @@ function render(d, vArr) {
   hero.className = 'hero ' + (lb_pct > 35 ? 'red' : lb_pct > 30 ? 'orange' : 'green');
   hEmo.innerText = lb_pct > 35 ? '🚨' : lb_pct > 30 ? '⚠️' : '✅';
 
-  // KPIs
-  document.getElementById('k-sales').innerText = num(sales_net);
-  document.getElementById('k-labor').innerText = num(lb_cost);
-  document.getElementById('k-labor-pct').innerText = lb_pct.toFixed(1) + '%';
-  // Progress bars
-  document.getElementById('bar-labor').style.width = Math.min(lb_pct, 100) + '%';
-  // Details
-  document.getElementById('cr-sales').innerText = num(sales_vat) + ' ₪';
-  document.getElementById('cr-net').innerText   = num(sales_net) + ' ₪';
-  document.getElementById('cr-diners').innerText= num(diners);
-  document.getElementById('cr-avg').innerText   = num(avg) + ' ₪';
-  document.getElementById('cr-days').innerText  = days;
-  
-  // Vendors
-  
-}
+  // KPI Row 1
+  if(document.getElementById('k-sales-vat')) document.getElementById('k-sales-vat').innerText = num(sales_vat);
+  if(document.getElementById('k-sales-net')) document.getElementById('k-sales-net').innerText = num(sales_net);
+  if(document.getElementById('k-diners')) document.getElementById('k-diners').innerText = num(diners);
+  if(document.getElementById('k-avg')) document.getElementById('k-avg').innerText = num(avg);
+  if(document.getElementById('k-days')) document.getElementById('k-days').innerText = days + ' ימים';
 
+  // KPI Row 2
+  if(document.getElementById('k-labor')) document.getElementById('k-labor').innerText = num(lb_cost);
+  if(document.getElementById('k-labor-pct')) document.getElementById('k-labor-pct').innerText = lb_pct.toFixed(1) + '%';
+  if(document.getElementById('bar-labor')) document.getElementById('bar-labor').style.width = Math.min(lb_pct, 100) + '%';
+  if(document.getElementById('k-orders')) document.getElementById('k-orders').innerText = num(ords);
+  if(document.getElementById('k-avg-ticket')) document.getElementById('k-avg-ticket').innerText = ords ? num(Math.round(sales_vat/ords)) + ' ₪' : '—';
+
+  // Details
+  if(document.getElementById('cr-sales')) document.getElementById('cr-sales').innerText = num(sales_vat) + ' ₪';
+  if(document.getElementById('cr-net')) document.getElementById('cr-net').innerText = num(sales_net) + ' ₪';
+  if(document.getElementById('cr-diners')) document.getElementById('cr-diners').innerText = num(diners);
+  if(document.getElementById('cr-avg')) document.getElementById('cr-avg').innerText = num(avg) + ' ₪';
+  if(document.getElementById('cr-days')) document.getElementById('cr-days').innerText = days;
+  
+  // Labor Details
+  if(document.getElementById('ld-hours')) document.getElementById('ld-hours').innerText = '—';
+  if(document.getElementById('ld-labor-pct')) document.getElementById('ld-labor-pct').innerText = lb_pct.toFixed(1) + '%';
+  if(document.getElementById('ld-avg')) document.getElementById('ld-avg').innerText = num(avg) + ' ₪';
+}
 // ── BOOT ─────────────────────────────────────────────────────────────
 if(localStorage.getItem('gr_access') === '1') {
   document.getElementById('paywall').style.display = 'none';
