@@ -51,6 +51,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#0d0d1a; co
 .tabs { display:flex; gap:4px; padding:16px 28px 0; border-bottom:1px solid rgba(255,255,255,0.1); background:#0d0d1a; overflow-x:auto; }
 .tab-btn { background:none; border:none; color:rgba(255,255,255,0.4); font-size:14px; font-weight:600; padding:10px 16px; cursor:pointer; font-family:inherit; white-space:nowrap; border-bottom:2px solid transparent; }
 .tab-btn.active { color:white; border-bottom-color:#7c3aed; }
+.no-data-msg { display:none; text-align:center; padding:40px 20px; color:rgba(255,255,255,0.3); font-size:14px; }
 
 /* ── HEADER ── */
 .header {
@@ -179,6 +180,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#0d0d1a; co
   <button class="tab-btn" id="tab-2026-06" onclick="switchMonth('2026-06')">יוני</button>
   <button class="tab-btn" id="tab-2026-05" onclick="switchMonth('2026-05')">מאי</button>
 </div>
+<div id="no-data-msg" class="no-data-msg">אין נתונים לחודש זה</div>
 
 <!-- MAIN -->
 <div class="container" id="main" style="display:none">
@@ -374,6 +376,7 @@ let allData = [];
 async function init() {
   setLoading('טוען נתונים...');
   document.getElementById('main').style.display = 'none';
+  document.getElementById('no-data-msg').style.display = 'none';
   document.getElementById('tabs-container').style.display = 'flex';
   
   try {
@@ -425,6 +428,7 @@ function switchMonth(m) {
   
   const d = allData.find(x => x.month === m);
   if(d) {
+    document.getElementById('no-data-msg').style.display = 'none';
     document.getElementById('main').style.display = 'block';
     let vArr = [];
     try {
@@ -433,8 +437,8 @@ function switchMonth(m) {
     } catch(e){}
     render(d, vArr);
   } else {
-    document.getElementById('main').innerHTML = '<div class="no-data">אין נתונים לחודש זה</div>';
-    document.getElementById('main').style.display = 'block';
+    document.getElementById('main').style.display = 'none';
+    document.getElementById('no-data-msg').style.display = 'block';
   }
 }
 
