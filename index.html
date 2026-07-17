@@ -188,10 +188,10 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#0d0d1a; co
   <!-- HERO -->
   <div class="hero green" id="hero">
     <div>
-      <div class="lbl">עלות כוללת (מזון + שכר)</div>
+      <div class="lbl">אחוז שכר (Labor %) מול מכירות</div>
       <div class="big" id="total-pct">—%</div>
       <div class="sub" id="hero-sub">—</div>
-      <div class="target">🎯 יעד: 45%</div>
+      <div class="target">מתוך מכירות נטו</div>
     </div>
     <div style="font-size:56px" id="hero-emoji">📊</div>
   </div>
@@ -228,12 +228,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#0d0d1a; co
       <div class="kpi-sub" id="k-labor-pct">—</div>
       <div class="bar"><div class="bf orange" id="bar-labor" style="width:0%"></div></div>
     </div>
-    <div class="kpi food">
-      <div class="kpi-lbl">עלות מזון</div>
-      <div class="kpi-val" id="k-food">—</div>
-      <div class="kpi-sub" id="k-food-pct">—</div>
-      <div class="bar"><div class="bf red" id="bar-food" style="width:0%"></div></div>
-    </div>
+    
     
     <div class="kpi orders">
       <div class="kpi-lbl">הזמנות</div>
@@ -279,16 +274,10 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#0d0d1a; co
     </div>
   </div>
 
-  <!-- TWO COLS: food suppliers + labor details -->
+  <!-- ONE COL: labor details -->
   <div style="display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
 
-    <!-- ספקים -->
-    <div class="section" style="flex:1; min-width:260px;">
-      <div class="s-title">ספקים — עלות מזון</div>
-      <div class="sup-grid" id="sup-grid">
-        <div class="no-data">אין נתונים</div>
-      </div>
-    </div>
+    
 
     <!-- שכר -->
     <div class="section" style="flex:1; min-width:260px;">
@@ -459,25 +448,20 @@ function render(d, vArr) {
   const ords = d.order_count || 0;
 
   // Hero
-  document.getElementById('total-pct').innerText = tot_pct.toFixed(1) + '%';
-  document.getElementById('hero-sub').innerText = num(lb_cost + fd_cost) + ' ₪';
+  document.getElementById('total-pct').innerText = lb_pct.toFixed(1) + '%';
+  document.getElementById('hero-sub').innerText = num(lb_cost) + ' ₪';
   
   const hero = document.getElementById('hero');
   const hEmo = document.getElementById('hero-emoji');
-  hero.className = 'hero ' + (tot_pct > 50 ? 'red' : tot_pct > 45 ? 'orange' : 'green');
-  hEmo.innerText = tot_pct > 50 ? '🚨' : tot_pct > 45 ? '⚠️' : '✅';
+  hero.className = 'hero ' + (lb_pct > 35 ? 'red' : lb_pct > 30 ? 'orange' : 'green');
+  hEmo.innerText = lb_pct > 35 ? '🚨' : lb_pct > 30 ? '⚠️' : '✅';
 
   // KPIs
   document.getElementById('k-sales').innerText = num(sales_net);
   document.getElementById('k-labor').innerText = num(lb_cost);
   document.getElementById('k-labor-pct').innerText = lb_pct.toFixed(1) + '%';
-  document.getElementById('k-food').innerText = num(fd_cost);
-  document.getElementById('k-food-pct').innerText = fd_pct.toFixed(1) + '%';
-  
   // Progress bars
   document.getElementById('bar-labor').style.width = Math.min(lb_pct, 100) + '%';
-  document.getElementById('bar-food').style.width  = Math.min(fd_pct, 100) + '%';
-
   // Details
   document.getElementById('cr-sales').innerText = num(sales_vat) + ' ₪';
   document.getElementById('cr-net').innerText   = num(sales_net) + ' ₪';
@@ -486,15 +470,7 @@ function render(d, vArr) {
   document.getElementById('cr-days').innerText  = days;
   
   // Vendors
-  let supHTML = '';
-  const vendors = vArr || [];
-  vendors.forEach(v => {
-    supHTML += `<div class="sup-box">
-      <div class="sv">${num(v.net || v.amount || 0)} ₪</div>
-      <div class="sl" title="${(v.name || v.supplier || '')}">${(v.name || v.supplier || '')}</div>
-    </div>`;
-  });
-  document.getElementById('suppliers-grid').innerHTML = supHTML || '<div class="no-data" style="grid-column:span 3;padding:10px">לא נמשכו ספקים לחודש זה</div>';
+  
 }
 
 // ── BOOT ─────────────────────────────────────────────────────────────
