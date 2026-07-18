@@ -216,36 +216,22 @@ function monthLabel(m) {
 let allData = [];
 
 async function init() {
-  setLoading('טוען נתונים...');
+  setLoading('טוען נתונים מ-API...');
   document.getElementById('main').style.display = 'none';
   document.getElementById('no-data-msg').style.display = 'none';
   document.getElementById('tabs-container').style.display = 'flex';
 
-  let julyData = { month: '2026-07', total_sales_vat: 61864, total_sales_net: 52427, labor_cost: 20906, labor_pct: 39.9, days_collected: 18 };
   try {
-    const res = await fetch('https://rosa-6d8ebb9e.base44.app/api/functions/grSync');
+    const res = await fetch('https://untitled-69b697029d0cd0fecb49189b.base44.app/api/functions/guestRoomData?v=' + Date.now());
     if (res.ok) {
-      const d = await res.json();
-      if (d && d.sales_vat) {
-        julyData = {
-          month: '2026-07',
-          total_sales_vat: d.sales_vat || 0,
-          total_sales_net: d.sales_net || 0,
-          labor_cost: d.labor_cost || 0,
-          labor_pct: d.labor_pct || 0,
-          days_collected: d.days_collected || 0,
-          diners: d.diners || 0,
-          order_count: d.order_count || 0
-        };
+      const json = await res.json();
+      if (json.success) {
+        allData = json.data;
       }
     }
-  } catch(e) { console.error(e); }
-  
-  allData = [
-    julyData,
-    { month: '2026-06', total_sales_vat: 93730, total_sales_net: 79432.2, labor_cost: 28858.79, labor_pct: 36.33, days_collected: 30, diners: 1028, order_count: 538 },
-    { month: '2026-05', total_sales_vat: 110161, total_sales_net: 93356.78, labor_cost: 24464.93, labor_pct: 26.2, days_collected: 31, diners: 1124, order_count: 579 }
-  ];
+  } catch (e) {
+    console.error('Fetch failed:', e);
+  }
   
   hideLoading();
   switchMonth('2026-07');
