@@ -289,6 +289,16 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#0d0d1a; co
 </div><!-- /container -->
 
 <script>
+
+function safeSetText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+function safeSetHTML(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = val;
+}
+
 // ── PAYWALL ──────────────────────────────────────────────────────────
 const CODES = ['Gsmart2026','SMARTPLATE'];
 function checkPW() {
@@ -298,7 +308,7 @@ function checkPW() {
     document.getElementById('paywall').style.display = 'none';
     init();
   } else {
-    document.getElementById('pw-err').textContent = 'קוד שגוי, נסה שנית';
+    safeSetText('pw-err', 'קוד שגוי, נסה שנית');
   }
 }
 document.getElementById('pw-input').addEventListener('keydown', e => { if(e.key==='Enter') checkPW(); });
@@ -317,7 +327,7 @@ function heroColor(pct) {
 }
 function setLoading(txt) {
   document.getElementById('loading').style.display = 'flex';
-  document.getElementById('loading-text').textContent = txt || 'טוען נתונים...';
+  safeSetText('loading-text', txt || 'טוען נתונים...');
 }
 function hideLoading() {
   document.getElementById('loading').style.display = 'none';
@@ -462,7 +472,7 @@ async function triggerSync() {
 // ── RENDER ────────────────────────────────────────────────────────────
 function renderAll(d, foodData) {
   const month = d.month || currentMonth();
-  document.getElementById('h-month').textContent = monthLabel(month);
+  safeSetText('h-month', monthLabel(month));
 
   const sales_vat = d.total_sales_vat || d.sales_vat || 0;
   const sales_net = d.total_sales_net || d.sales_net || 0;
@@ -490,26 +500,26 @@ function renderAll(d, foodData) {
   const [hClass, hEmoji] = heroColor(total_pct);
   const heroEl = document.getElementById('hero');
   heroEl.className = 'hero ' + hClass;
-  document.getElementById('total-pct').textContent = total_pct.toFixed(1) + '%';
-  document.getElementById('hero-sub').textContent  = 'שכר ' + labor_pct.toFixed(1) + '% + מזון ' + food_pct.toFixed(1) + '%';
-  document.getElementById('hero-emoji').textContent = hEmoji;
+  safeSetText('total-pct', total_pct.toFixed(1) + '%');
+  safeSetText('hero-sub', 'שכר ' + labor_pct.toFixed(1) + '% + מזון ' + food_pct.toFixed(1) + '%');
+  safeSetText('hero-emoji', hEmoji);
 
   // KPI row 1
-  document.getElementById('k-sales-vat').textContent = fmt(sales_vat);
-  document.getElementById('k-sales-net').textContent = fmt(sales_net);
-  document.getElementById('k-diners').textContent    = diners > 0 ? diners.toLocaleString('he-IL') : '—';
-  document.getElementById('k-days').textContent      = days + ' ימים';
-  document.getElementById('k-avg').textContent       = avg_per_diner > 0 ? fmt(avg_per_diner) : '—';
+  safeSetText('k-sales-vat', fmt(sales_vat));
+  safeSetText('k-sales-net', fmt(sales_net));
+  safeSetText('k-diners', diners > 0 ? diners.toLocaleString('he-IL') : '—');
+  safeSetText('k-days', days + ' ימים');
+  safeSetText('k-avg', avg_per_diner > 0 ? fmt(avg_per_diner) : '—');
 
   // KPI row 2
-  document.getElementById('k-labor').textContent     = fmt(labor);
-  document.getElementById('k-labor-pct').textContent = fmtP(labor_pct) + ' מנטו';
-  document.getElementById('k-food').textContent      = fmt(food_net);
-  document.getElementById('k-food-pct').textContent  = fmtP(food_pct) + ' מנטו';
-  document.getElementById('k-tips').textContent      = fmt(tips);
-  document.getElementById('k-tips-pct').textContent  = fmtP(tips_pct) + ' מברוטו';
-  document.getElementById('k-orders').textContent    = orders > 0 ? orders.toLocaleString('he-IL') : '—';
-  document.getElementById('k-avg-ticket').textContent = orders > 0 ? fmt(avg_ticket) + ' לעסקה' : '—';
+  safeSetText('k-labor', fmt(labor));
+  safeSetText('k-labor-pct', fmtP(labor_pct) + ' מנטו');
+  safeSetText('k-food', fmt(food_net));
+  safeSetText('k-food-pct', fmtP(food_pct) + ' מנטו');
+  safeSetText('k-tips', fmt(tips));
+  safeSetText('k-tips-pct', fmtP(tips_pct) + ' מברוטו');
+  safeSetText('k-orders', orders > 0 ? orders.toLocaleString('he-IL') : '—');
+  safeSetText('k-avg-ticket', orders > 0 ? fmt(avg_ticket) + ' לעסקה' : '—');
 
   // Bars (max 60% = full bar)
   bar('bar-labor', labor_pct / 60 * 100, labor_pct < 25 ? 'green' : labor_pct < 32 ? 'orange' : 'red');
@@ -517,24 +527,24 @@ function renderAll(d, foodData) {
   bar('bar-tips',  Math.min(tips_pct * 5, 100), 'pink');
 
   // Cost breakdown
-  document.getElementById('cr-labor-gross').textContent = fmt(labor_gross);
-  document.getElementById('cr-tips').textContent        = fmt(tips);
-  document.getElementById('cr-labor-net').textContent   = fmt(labor);
-  document.getElementById('cr-food').textContent        = fmt(food_net);
-  document.getElementById('cr-total-pct').textContent   = fmtP(total_pct);
+  safeSetText('cr-labor-gross', fmt(labor_gross));
+  safeSetText('cr-tips', fmt(tips));
+  safeSetText('cr-labor-net', fmt(labor));
+  safeSetText('cr-food', fmt(food_net));
+  safeSetText('cr-total-pct', fmtP(total_pct));
 
   // Labor detail
-  document.getElementById('ld-hours').textContent     = hours > 0 ? hours + ' ש"ע' : '—';
-  document.getElementById('ld-labor-pct').textContent = fmtP(labor_pct);
-  document.getElementById('ld-tips-pct').textContent  = fmtP(tips_pct);
-  document.getElementById('ld-avg').textContent       = avg_per_diner > 0 ? fmt(avg_per_diner) : '—';
+  safeSetText('ld-hours', hours > 0 ? hours + ' ש"ע' : '—');
+  safeSetText('ld-labor-pct', fmtP(labor_pct));
+  safeSetText('ld-tips-pct', fmtP(tips_pct));
+  safeSetText('ld-avg', avg_per_diner > 0 ? fmt(avg_per_diner) : '—');
 
   // Suppliers
   renderVendors(vendors);
 
   // Footer
   const upd = d.last_updated ? new Date(d.last_updated).toLocaleString('he-IL') : '—';
-  document.getElementById('last-upd').textContent = 'עדכון אחרון: ' + upd;
+  safeSetText('last-upd', 'עדכון אחרון: ' + upd);
   localStorage.setItem('gr_last_upd', d.last_updated || '');
 
   // Show main
@@ -582,7 +592,7 @@ async function init() {
     await loadFoodAndRender(grData);
   } catch(e) {
     console.error('Init failed', e);
-    document.getElementById('main').innerHTML = '<div class="no-data">⚠️ שגיאה בטעינת נתונים<br><small>' + e.message + '</small></div>';
+    safeSetHTML('main', '<div class="no-data">⚠️ שגיאה בטעינת נתונים<br><small>' + e.message + '</small></div>');
     document.getElementById('main').style.display = 'block';
   } finally {
     hideLoading();
