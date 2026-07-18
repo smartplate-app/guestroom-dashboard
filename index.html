@@ -251,7 +251,7 @@ async function init() {
   switchMonth('2026-07');
 }
 
-function switchMonth(m) {
+function switchMonth(m) { console.log("switchMonth called with", m, "allData length:", allData.length);
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   const btn = document.getElementById('tab-' + m);
   if(btn) btn.classList.add('active');
