@@ -222,7 +222,7 @@ async function init() {
   document.getElementById('tabs-container').style.display = 'flex';
 
   try {
-    const res = await fetch('https://untitled-69b697029d0cd0fecb49189b.base44.app/api/functions/guestRoomData?v=' + Date.now());
+    const res = await fetch('https://base44.app/api/apps/69b697029d0cd0fecb49189b/functions/guestRoomData?v=' + Date.now());
     if (res.ok) {
       const json = await res.json();
       if (json.success) {
