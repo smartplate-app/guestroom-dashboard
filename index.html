@@ -153,24 +153,6 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#0d0d1a; co
   <div class="kpi-grid">
     <div class="kpi sales">
       <div class="kpi-lbl">מכירות ברוטו</div>
-    <!-- Top Items Row -->
-    <div class="kpi-card" style="margin-top: 20px;">
-        <div class="kpi-header">🏆 פריטים נמכרים ביותר (Top 15) - החודש</div>
-        <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse; text-align: right;" dir="rtl">
-                <thead>
-                    <tr style="border-bottom: 2px solid #333;">
-                        <th style="padding: 10px;">פריט</th>
-                        <th style="padding: 10px;">כמות</th>
-                        <th style="padding: 10px;">הכנסה (ברוטו)</th>
-                    </tr>
-                </thead>
-                <tbody id="topItemsBody">
-                    <tr><td colspan="3" style="text-align: center; padding: 20px; color: #888;">טוען נתונים...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
 
       <div class="kpi-val" id="k-sales-vat">—</div>
       <div class="kpi-sub">כולל מע"מ</div>
@@ -193,6 +175,24 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#0d0d1a; co
     </div>
   </div>
 
+    <!-- Top Items Row -->
+    <div class="kpi-card" style="margin-top: 20px;">
+        <div class="kpi-header">🏆 פריטים נמכרים ביותר (Top 15) - החודש</div>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: right;" dir="rtl">
+                <thead>
+                    <tr style="border-bottom: 2px solid #333;">
+                        <th style="padding: 10px;">פריט</th>
+                        <th style="padding: 10px;">כמות</th>
+                        <th style="padding: 10px;">הכנסה (ברוטו)</th>
+                    </tr>
+                </thead>
+                <tbody id="topItemsBody">
+                    <tr><td colspan="3" style="text-align: center; padding: 20px; color: #888;">טוען נתונים...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <script>
