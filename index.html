@@ -153,7 +153,6 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#0d0d1a; co
   <div class="kpi-grid">
     <div class="kpi sales">
       <div class="kpi-lbl">מכירות ברוטו</div>
-
       <div class="kpi-val" id="k-sales-vat">—</div>
       <div class="kpi-sub">כולל מע"מ</div>
     </div>
@@ -175,24 +174,6 @@ body { font-family: system-ui, -apple-system, sans-serif; background:#0d0d1a; co
     </div>
   </div>
 
-    <!-- Top Items Row -->
-    <div class="kpi-card" style="margin-top: 20px;">
-        <div class="kpi-header">🏆 פריטים נמכרים ביותר (Top 15) - החודש</div>
-        <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse; text-align: right;" dir="rtl">
-                <thead>
-                    <tr style="border-bottom: 2px solid #333;">
-                        <th style="padding: 10px;">פריט</th>
-                        <th style="padding: 10px;">כמות</th>
-                        <th style="padding: 10px;">הכנסה (ברוטו)</th>
-                    </tr>
-                </thead>
-                <tbody id="topItemsBody">
-                    <tr><td colspan="3" style="text-align: center; padding: 20px; color: #888;">טוען נתונים...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
 </div>
 
 <script>
@@ -285,25 +266,6 @@ function render(d) {
   const lb_cost = d.labor_cost || 0;
   const lb_pct = d.labor_pct || 0;
   const days = d.days_collected || 0;
-
-  // Render Top Items
-  const tbody = document.getElementById('topItemsBody');
-  if (tbody && d.sold_items && d.sold_items.length > 0) {
-      let itemsHtml = '';
-      d.sold_items.slice(0, 15).forEach(item => {
-          itemsHtml += `
-              <tr style="border-bottom: 1px solid #444;">
-                  <td style="padding: 10px;">${item.name}</td>
-                  <td style="padding: 10px;">${item.sold}</td>
-                  <td style="padding: 10px;">₪${num(item.amountVat)}</td>
-              </tr>
-          `;
-      });
-      tbody.innerHTML = itemsHtml;
-  } else if (tbody) {
-      tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px; color: #888;">אין נתוני פריטים לחודש זה</td></tr>';
-  }
-
 
   // Hero
   safeSet('total-pct', lb_pct.toFixed(1) + '%');
